@@ -48,7 +48,7 @@
   - **Property 6: Mock data structure validity**
   - **Validates: Requirements 8.3, 8.4**
 
-- [ ] 6. モックデータの作成
+- [x] 6. モックデータの作成
   - utils/mockData.tsを作成
   - Bitcoin（BTC/JPY）のモックデータを作成
   - Ethereum（ETH/JPY）のモックデータを作成
@@ -57,7 +57,7 @@
   - _Requirements: 1.2, 7.3_
 
 
-- [ ] 6.1 モックデータのプロパティテストを作成
+- [x] 6.1 モックデータのプロパティテストを作成
   - **Property 7: Price update maintains data integrity**
   - **Validates: Requirements 7.2**
 
