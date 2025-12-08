@@ -36,7 +36,7 @@
   - ナビゲーションバーからページ遷移が正しく動作することを確認
   - 各ページでナビゲーションバーのアクティブ状態が正しく表示されることを確認
 
-- [ ] 5. 型定義の作成
+- [x] 5. 型定義の作成
   - types/crypto.tsを作成
   - CryptoData型を定義
   - ChartDataPoint型を定義
@@ -44,7 +44,7 @@
   - NavigationItem型を定義
   - _Requirements: 8.3, 8.4_
 
-- [ ] 5.1 型定義のプロパティテストを作成
+- [x] 5.1 型定義のプロパティテストを作成
   - **Property 6: Mock data structure validity**
   - **Validates: Requirements 8.3, 8.4**
 
