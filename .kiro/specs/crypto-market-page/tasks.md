@@ -61,30 +61,30 @@
   - **Property 7: Price update maintains data integrity**
   - **Validates: Requirements 7.2**
 
-- [ ] 7. Composablesの実装
+- [x] 7. Composablesの実装
   - composables/useCryptoData.tsを作成
   - モックデータ取得関数を実装
   - 将来のAPI統合を見据えたインターフェース設計
   - _Requirements: 8.1, 8.2_
 
-- [ ] 7.1 自動更新Composableの実装
+- [x] 7.1 自動更新Composableの実装
   - composables/useAutoRefresh.tsを作成
   - setIntervalを使用した5秒ごとの更新ロジック
   - タイマーのクリーンアップ処理（onUnmounted）
   - start/stop関数の実装
   - _Requirements: 7.1, 7.4_
 
-- [ ] 7.2 自動更新のプロパティテストを作成
+- [x] 7.2 自動更新のプロパティテストを作成
   - **Property 8: Auto-refresh timer cleanup**
   - **Validates: Requirements 7.4**
 
-- [ ] 7.3 時間フィルターComposableの実装
+- [x] 7.3 時間フィルターComposableの実装
   - composables/useTimeFilter.tsを作成
   - 選択状態の管理（ref）
   - デフォルト値を'24h'に設定
   - _Requirements: 4.2, 4.3_
 
-- [ ]* 7.4 時間フィルターのプロパティテストを作成
+- [x] 7.4 時間フィルターのプロパティテストを作成
   - **Property 4: Time filter exclusivity**
   - **Validates: Requirements 4.2, 4.3**
 
