@@ -41,7 +41,7 @@ const handleFilterChange = (filter: TimeFilter) => {
       </div>
 
       <!-- Time Filter Buttons -->
-      <div class="flex items-center gap-2 overflow-x-auto pb-2">
+      <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
         <button
           v-for="filter in timeFilters"
           :key="filter.value"
