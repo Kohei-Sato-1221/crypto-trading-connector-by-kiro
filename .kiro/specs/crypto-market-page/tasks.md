@@ -31,7 +31,7 @@
   - クリック時のルート遷移を確認
   - _Requirements: 5.2, 5.4_
 
-- [ ] 4. Checkpoint - ページ遷移の確認
+- [x] 4. Checkpoint - ページ遷移の確認
   - すべてのページ（market、trade、history）が作成されていることを確認
   - ナビゲーションバーからページ遷移が正しく動作することを確認
   - 各ページでナビゲーションバーのアクティブ状態が正しく表示されることを確認
@@ -44,7 +44,7 @@
   - NavigationItem型を定義
   - _Requirements: 8.3, 8.4_
 
-- [ ]* 5.1 型定義のプロパティテストを作成
+- [ ] 5.1 型定義のプロパティテストを作成
   - **Property 6: Mock data structure validity**
   - **Validates: Requirements 8.3, 8.4**
 
@@ -57,7 +57,7 @@
   - _Requirements: 1.2, 7.3_
 
 
-- [ ]* 6.1 モックデータのプロパティテストを作成
+- [ ] 6.1 モックデータのプロパティテストを作成
   - **Property 7: Price update maintains data integrity**
   - **Validates: Requirements 7.2**
 
@@ -74,7 +74,7 @@
   - start/stop関数の実装
   - _Requirements: 7.1, 7.4_
 
-- [ ]* 7.2 自動更新のプロパティテストを作成
+- [ ] 7.2 自動更新のプロパティテストを作成
   - **Property 8: Auto-refresh timer cleanup**
   - **Validates: Requirements 7.4**
 
@@ -97,7 +97,7 @@
   - 背景ブラー効果
   - _Requirements: 1.5, 4.1, 4.2, 4.3_
 
-- [ ]* 8.1 ヘッダーのユニットテストを作成
+- [ ] 8.1 ヘッダーのユニットテストを作成
   - 市場ステータスの表示を確認
   - 5つの時間フィルターボタンが表示されることを確認
   - デフォルトで24hが選択されていることを確認
@@ -113,11 +113,11 @@
   - レスポンシブサイズ対応
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ]* 9.1 チャートのプロパティテストを作成
+- [ ] 9.1 チャートのプロパティテストを作成
   - **Property 3: Chart color consistency**
   - **Validates: Requirements 2.4, 2.5**
 
-- [ ]* 9.2 チャートのユニットテストを作成
+- [ ] 9.2 チャートのユニットテストを作成
   - 曜日ラベルが表示されることを確認
   - Y軸に価格が表示されることを確認
   - _Requirements: 2.2, 2.3_
