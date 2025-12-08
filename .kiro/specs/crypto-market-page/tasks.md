@@ -103,7 +103,7 @@
   - デフォルトで24hが選択されていることを確認
   - _Requirements: 1.5, 4.1, 4.2_
 
-- [ ] 9. チャートコンポーネントの実装
+- [x] 9. チャートコンポーネントの実装
   - components/PriceChart.vueを作成
   - Chart.jsとvue-chartjsのインストール
   - エリアチャートの実装
@@ -113,11 +113,11 @@
   - レスポンシブサイズ対応
   - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
 
-- [ ] 9.1 チャートのプロパティテストを作成
+- [x] 9.1 チャートのプロパティテストを作成
   - **Property 3: Chart color consistency**
   - **Validates: Requirements 2.4, 2.5**
 
-- [ ] 9.2 チャートのユニットテストを作成
+- [x] 9.2 チャートのユニットテストを作成
   - 曜日ラベルが表示されることを確認
   - Y軸に価格が表示されることを確認
   - _Requirements: 2.2, 2.3_
@@ -133,15 +133,15 @@
   - トランジション効果（価格更新時）
   - _Requirements: 1.2, 1.3, 1.4, 2.1, 3.1, 7.5_
 
-- [ ]* 10.1 暗号通貨カードのプロパティテストを作成
+- [ ] 10.1 暗号通貨カードのプロパティテストを作成
   - **Property 1: Crypto card rendering completeness**
   - **Validates: Requirements 1.2**
 
-- [ ]* 10.2 暗号通貨カードのプロパティテストを作成
+- [ ] 10.2 暗号通貨カードのプロパティテストを作成
   - **Property 2: Price change color consistency**
   - **Validates: Requirements 1.3, 1.4**
 
-- [ ]* 10.3 暗号通貨カードのユニットテストを作成
+- [ ] 10.3 暗号通貨カードのユニットテストを作成
   - Tradeボタンが表示されることを確認
   - Tradeボタンクリック時の遷移を確認
   - _Requirements: 3.1, 3.2_
