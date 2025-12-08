@@ -1,0 +1,236 @@
+openapi: 3.0.3
+info:
+  title: Crypto Trading Connector API
+  description: REST API for cryptocurrency trading platform
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@crypto-trading-connector.com
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development server
+
+tags:
+  - name: crypto
+    description: Cryptocurrency market data operations
+
+paths:
+  /crypto/market:
+    get:
+      tags:
+        - crypto
+      summary: Get all cryptocurrency market data
+      description: Returns a list of all cryptocurrencies with their current market data including prices, changes, and chart data
+      operationId: getCryptoMarket
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MarketResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /crypto/{id}:
+    get:
+      tags:
+        - crypto
+      summary: Get cryptocurrency by ID
+      description: Returns detailed information about a specific cryptocurrency
+      operationId: getCryptoById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Cryptocurrency ID (e.g., bitcoin, ethereum)
+          schema:
+            type: string
+            example: bitcoin
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CryptoData'
+        '404':
+          description: Cryptocurrency not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /crypto/{id}/chart:
+    get:
+      tags:
+        - crypto
+      summary: Get chart data for cryptocurrency
+      description: Returns historical price chart data for a specific cryptocurrency
+      operationId: getCryptoChart
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Cryptocurrency ID
+          schema:
+            type: string
+            example: bitcoin
+        - name: period
+          in: query
+          required: false
+          description: Time period for chart data
+          schema:
+            type: string
+            enum: [24h, 7d, 30d, 1y, all]
+            default: 7d
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ChartResponse'
+        '404':
+          description: Cryptocurrency not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    CryptoData:
+      type: object
+      required:
+        - id
+        - name
+        - symbol
+        - pair
+        - icon
+        - iconColor
+        - currentPrice
+        - changePercent
+        - chartData
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the cryptocurrency
+          example: bitcoin
+        name:
+          type: string
+          description: Full name of the cryptocurrency
+          example: Bitcoin
+        symbol:
+          type: string
+          description: Trading symbol
+          example: BTC
+        pair:
+          type: string
+          description: Trading pair
+          example: BTC/JPY
+        icon:
+          type: string
+          description: Icon character or emoji
+          example: ₿
+        iconColor:
+          type: string
+          description: Hex color code for the icon background
+          example: "#f7931a"
+        currentPrice:
+          type: number
+          format: double
+          description: Current price in JPY
+          example: 9850000
+        changePercent:
+          type: number
+          format: double
+          description: Percentage change (positive or negative)
+          example: 5.2
+        chartData:
+          type: array
+          description: Array of chart data points
+          items:
+            $ref: '#/components/schemas/ChartDataPoint'
+
+    ChartDataPoint:
+      type: object
+      required:
+        - day
+        - price
+      properties:
+        day:
+          type: string
+          description: Day label (Mon, Tue, Wed, etc.)
+          example: Mon
+        price:
+          type: number
+          format: double
+          description: Price at this data point
+          example: 9350000
+
+    MarketResponse:
+      type: object
+      required:
+        - data
+        - timestamp
+      properties:
+        data:
+          type: array
+          description: Array of cryptocurrency market data
+          items:
+            $ref: '#/components/schemas/CryptoData'
+        timestamp:
+          type: integer
+          format: int64
+          description: Unix timestamp of the response
+          example: 1704067200
+
+    ChartResponse:
+      type: object
+      required:
+        - data
+        - period
+      properties:
+        data:
+          type: array
+          description: Array of chart data points
+          items:
+            $ref: '#/components/schemas/ChartDataPoint'
+        period:
+          type: string
+          description: Time period of the chart data
+          enum: [24h, 7d, 30d, 1y, all]
+          example: 7d
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error type
+          example: NOT_FOUND
+        message:
+          type: string
+          description: Human-readable error message
+          example: Cryptocurrency not found

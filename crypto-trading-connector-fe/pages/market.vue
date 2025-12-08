@@ -1,18 +1,30 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { CryptoData } from '~/types/crypto'
+import { ref, onMounted } from 'vue'
 import { useAutoRefresh } from '~/composables/useAutoRefresh'
-import { updateMockPrice, getMockCryptoData } from '~/utils/mockData'
+import { useCryptoData } from '~/composables/useCryptoData'
 import MarketHeader from '~/components/MarketHeader.vue'
 import CryptoCard from '~/components/CryptoCard.vue'
 import NavigationBar from '~/components/NavigationBar.vue'
 
-// Initialize with mock data immediately (works for both SSR and client)
-const cryptoList = ref<CryptoData[]>(getMockCryptoData())
+// Use crypto data composable
+const { cryptoData, loading, error, fetchCryptoData, useMockData } = useCryptoData()
+
+// Fetch data on mount
+onMounted(async () => {
+  try {
+    await fetchCryptoData()
+  } catch (e) {
+    console.error('Failed to fetch crypto data:', e)
+  }
+})
 
 // Auto-refresh every 5 seconds (only runs on client)
-const updatePrices = () => {
-  cryptoList.value = cryptoList.value.map(crypto => updateMockPrice(crypto))
+const updatePrices = async () => {
+  try {
+    await fetchCryptoData()
+  } catch (e) {
+    console.error('Failed to refresh crypto data:', e)
+  }
 }
 
 const autoRefresh = useAutoRefresh(updatePrices, 5000)
@@ -31,8 +43,14 @@ if (process.client) {
     <!-- Scrollable Content Area -->
     <main class="px-4 py-4">
       <div class="space-y-4 max-w-2xl mx-auto">
+        <!-- Loading State (initial load only) -->
+        <div v-if="loading && cryptoData.length === 0" class="text-center py-8">
+          <div class="text-white/60">Loading...</div>
+        </div>
+
+        <!-- Crypto Cards (show individual errors per card) -->
         <CryptoCard
-          v-for="crypto in cryptoList"
+          v-for="crypto in cryptoData"
           :key="crypto.id"
           :crypto="crypto"
         />
