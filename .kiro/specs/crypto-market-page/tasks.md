@@ -14,7 +14,7 @@
   - pages/index.vueを作成し、/marketへリダイレクト
   - _Requirements: 5.4, 5.5_
 
-- [ ] 3. ナビゲーションバーコンポーネントの実装
+- [x] 3. ナビゲーションバーコンポーネントの実装
   - components/NavigationBar.vueを作成
   - 4つのナビゲーション項目（Market、Trade、History、Portfolio）を実装
   - アクティブ状態のスタイリング（青色ハイライト）
@@ -22,11 +22,11 @@
   - アイコンとラベルの表示
   - _Requirements: 5.1, 5.2, 5.3, 5.4_
 
-- [ ]* 3.1 ナビゲーションバーのプロパティテストを作成
+- [x] 3.1 ナビゲーションバーのプロパティテストを作成
   - **Property 5: Navigation active state**
   - **Validates: Requirements 5.3**
 
-- [ ]* 3.2 ナビゲーションバーのユニットテストを作成
+- [x] 3.2 ナビゲーションバーのユニットテストを作成
   - 4つのリンクが表示されることを確認
   - クリック時のルート遷移を確認
   - _Requirements: 5.2, 5.4_
