@@ -24,7 +24,7 @@ func NewCryptoHandler(service service.CryptoService) *CryptoHandler {
 func (h *CryptoHandler) GetMarketData(c echo.Context) error {
 	marketData, err := h.service.GetMarketData()
 	if err != nil {
-		return handleError(c, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", err.Error())
+		return handleError(c, http.StatusInternalServerError, generated.INTERNALSERVERERROR, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, marketData)
@@ -34,16 +34,16 @@ func (h *CryptoHandler) GetMarketData(c echo.Context) error {
 func (h *CryptoHandler) GetCryptoByID(c echo.Context) error {
 	id := c.Param("id")
 	if id == "" {
-		return handleError(c, http.StatusBadRequest, "BAD_REQUEST", "cryptocurrency ID is required")
+		return handleError(c, http.StatusBadRequest, generated.BADREQUEST, "cryptocurrency ID is required")
 	}
 
 	cryptoData, err := h.service.GetCryptoByID(id)
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "cryptocurrency not found: "+id {
-			return handleError(c, http.StatusNotFound, "NOT_FOUND", "Cryptocurrency not found")
+			return handleError(c, http.StatusNotFound, generated.NOTFOUND, "Cryptocurrency not found")
 		}
-		return handleError(c, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", err.Error())
+		return handleError(c, http.StatusInternalServerError, generated.INTERNALSERVERERROR, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, cryptoData)
@@ -53,7 +53,7 @@ func (h *CryptoHandler) GetCryptoByID(c echo.Context) error {
 func (h *CryptoHandler) GetChartData(c echo.Context) error {
 	id := c.Param("id")
 	if id == "" {
-		return handleError(c, http.StatusBadRequest, "BAD_REQUEST", "cryptocurrency ID is required")
+		return handleError(c, http.StatusBadRequest, generated.BADREQUEST, "cryptocurrency ID is required")
 	}
 
 	period := c.QueryParam("period")
@@ -63,16 +63,16 @@ func (h *CryptoHandler) GetChartData(c echo.Context) error {
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "cryptocurrency not found: "+id {
-			return handleError(c, http.StatusNotFound, "NOT_FOUND", "Cryptocurrency not found")
+			return handleError(c, http.StatusNotFound, generated.NOTFOUND, "Cryptocurrency not found")
 		}
-		return handleError(c, http.StatusInternalServerError, "INTERNAL_SERVER_ERROR", err.Error())
+		return handleError(c, http.StatusInternalServerError, generated.INTERNALSERVERERROR, err.Error())
 	}
 
 	return c.JSON(http.StatusOK, chartData)
 }
 
 // handleError is a helper function to return error responses
-func handleError(c echo.Context, statusCode int, errorType string, message string) error {
+func handleError(c echo.Context, statusCode int, errorType generated.ErrorResponseError, message string) error {
 	return c.JSON(statusCode, generated.ErrorResponse{
 		Error:   errorType,
 		Message: message,

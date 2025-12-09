@@ -9,7 +9,8 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "gen:types": "openapi-typescript ../openapi.yaml -o types/api.ts"
   },
   "dependencies": {
     "chart.js": "^4.5.1",

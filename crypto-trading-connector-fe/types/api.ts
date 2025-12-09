@@ -64,6 +64,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Create a new order
+         * @description Creates a new limit order for cryptocurrency trading
+         */
+        post: operations["createOrder"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/balance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get user balance
+         * @description Returns the current available balance for the authenticated user
+         */
+        get: operations["getBalance"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -147,17 +187,124 @@ export interface components {
              */
             period: "24h" | "7d" | "30d" | "1y" | "all";
         };
+        CreateOrderRequest: {
+            /**
+             * @description Trading pair
+             * @example BTC/JPY
+             * @enum {string}
+             */
+            pair: "BTC/JPY" | "ETH/JPY";
+            /**
+             * @description Order type (currently only limit orders supported)
+             * @example limit
+             * @enum {string}
+             */
+            orderType: "limit";
+            /**
+             * Format: double
+             * @description Limit price in JPY
+             * @example 14000000
+             */
+            price: number;
+            /**
+             * Format: double
+             * @description Amount of cryptocurrency to buy
+             * @example 0.001
+             */
+            amount: number;
+        };
+        Order: {
+            /**
+             * Format: uuid
+             * @description Unique order identifier
+             * @example 550e8400-e29b-41d4-a716-446655440000
+             */
+            orderId: string;
+            /**
+             * @description Trading pair
+             * @example BTC/JPY
+             * @enum {string}
+             */
+            pair: "BTC/JPY" | "ETH/JPY";
+            /**
+             * @description Order type
+             * @example limit
+             * @enum {string}
+             */
+            orderType: "limit";
+            /**
+             * Format: double
+             * @description Limit price in JPY
+             * @example 14000000
+             */
+            price: number;
+            /**
+             * Format: double
+             * @description Amount of cryptocurrency
+             * @example 0.001
+             */
+            amount: number;
+            /**
+             * Format: double
+             * @description Estimated total cost in JPY (price * amount)
+             * @example 14000
+             */
+            estimatedTotal: number;
+            /**
+             * @description Order status
+             * @example pending
+             * @enum {string}
+             */
+            status: "pending" | "completed" | "cancelled" | "failed";
+            /**
+             * Format: date-time
+             * @description Order creation timestamp
+             * @example 2024-01-01T00:00:00Z
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description Order last update timestamp
+             * @example 2024-01-01T00:00:00Z
+             */
+            updatedAt?: string;
+        };
+        Balance: {
+            /**
+             * Format: double
+             * @description Available balance in JPY
+             * @example 1540200
+             */
+            availableBalance: number;
+            /**
+             * @description Currency code
+             * @example JPY
+             * @enum {string}
+             */
+            currency: "JPY";
+            /**
+             * Format: int64
+             * @description Unix timestamp of the balance snapshot
+             * @example 1704067200
+             */
+            timestamp: number;
+        };
         ErrorResponse: {
             /**
              * @description Error type
-             * @example NOT_FOUND
+             * @example INSUFFICIENT_BALANCE
+             * @enum {string}
              */
-            error: string;
+            error: "NOT_FOUND" | "BAD_REQUEST" | "INVALID_REQUEST" | "INVALID_AMOUNT" | "INVALID_PRICE" | "UNSUPPORTED_PAIR" | "INSUFFICIENT_BALANCE" | "UNAUTHORIZED" | "INTERNAL_ERROR" | "INTERNAL_SERVER_ERROR";
             /**
              * @description Human-readable error message
-             * @example Cryptocurrency not found
+             * @example Available balance is insufficient for this order
              */
             message: string;
+            /** @description Additional error details (optional) */
+            details?: {
+                [key: string]: unknown;
+            };
         };
     };
     responses: never;
@@ -264,6 +411,95 @@ export interface operations {
             };
             /** @description Cryptocurrency not found */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    createOrder: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateOrderRequest"];
+            };
+        };
+        responses: {
+            /** @description Order created successfully */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Order"];
+                };
+            };
+            /** @description Invalid request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Insufficient balance */
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getBalance: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Balance"];
+                };
+            };
+            /** @description Unauthorized */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
