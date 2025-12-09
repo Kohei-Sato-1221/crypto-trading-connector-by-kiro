@@ -102,61 +102,55 @@
   - _要件: 8.2_
 
 - [ ] 4. バックエンド実装
-  - データベーススキーマの作成
+  - 既存のDBスキーマ（buy_orders、price_histories）を利用
   - Repository、Service、Handler層の実装
   - ビジネスロジックとバリデーションの実装
   - _要件: 7.1, 7.3, 8.1, 8.2, 8.3, 8.4, 8.5_
 
-- [ ] 4.1 データベーススキーマの作成
-  - ordersテーブルのマイグレーション作成
-  - balancesテーブルのマイグレーション作成
-  - インデックスと外部キー制約の設定
-  - _要件: 8.2_
-
-- [ ] 4.2 Repository層の実装
-  - OrderRepository: 注文のCRUD操作
-  - BalanceRepository: 残高の取得と更新
-  - トランザクション処理の実装
+- [x] 4.1 Repository層の実装
+  - OrderRepository: 既存のbuy_ordersテーブルへの注文記録
+  - bitFlyer APIクライアントインターフェースの定義
+  - bitFlyer APIクライアントの実装（残高取得、注文作成）
+  - MockBitFlyerClientの作成（テスト用）
   - _要件: 7.1, 8.2_
 
-- [ ]* 4.3 Repository層のユニットテスト
-  - OrderRepositoryのCRUD操作テスト
-  - BalanceRepositoryの取得と更新テスト
-  - トランザクション処理のテスト
+- [x] 4.2 Repository層のユニットテスト
+  - OrderRepositoryの注文記録テスト
+  - MockBitFlyerClientを使用したService層のテスト準備
   - _要件: 7.1, 8.2_
 
-- [ ] 4.4 Service層の実装
+- [x] 4.3 Service層の実装
   - OrderService: 注文作成のビジネスロジック
   - 注文バリデーション（価格、数量、残高チェック）
   - 推定合計の計算
-  - 残高更新のトランザクション処理
+  - bitFlyer APIクライアントインターフェースを使用した実装
   - _要件: 7.2, 7.3, 8.1, 8.2_
 
-- [ ]* 4.5 Service層のユニットテスト
-  - 注文作成の正常系テスト
-  - バリデーションエラーのテスト（価格、数量、残高）
+- [x] 4.4 Service層のユニットテスト
+  - MockBitFlyerClientを使用した注文作成の正常系テスト
+  - MockBitFlyerClientを使用したバリデーションエラーのテスト（価格、数量、残高）
   - 推定合計計算のテスト
-  - トランザクション処理のテスト
+  - bitFlyer API呼び出し失敗時のエラーハンドリングテスト
   - _要件: 7.2, 7.3, 8.1, 8.5_
 
-- [ ] 4.6 Handler層の実装
+- [ ] 4.5 Handler層の実装
   - OrderHandler: POST /api/v1/orders
   - BalanceHandler: GET /api/v1/balance
   - エラーハンドリングとレスポンス生成
   - _要件: 8.2, 8.3, 8.4_
 
-- [ ]* 4.7 Handler層のユニットテスト
+- [ ] 4.6 Handler層のユニットテスト
   - 注文作成エンドポイントのテスト
   - 残高取得エンドポイントのテスト
   - エラーレスポンスのテスト
   - _要件: 8.2, 8.3, 8.4_
 
-- [ ] 4.8 ルーティングの設定
+- [ ] 4.7 ルーティングの設定
   - cmd/server/main.goにルートを追加
   - ミドルウェアの設定（認証、レート制限）
   - _要件: 8.2_
 
-- [ ] 4.9 チェックポイント - バックエンドの動作確認
+- [ ] 4.8 チェックポイント - バックエンドの動作確認
   - すべてのテストが通過することを確認
   - APIエンドポイントの手動テスト
   - ユーザーが質問がある場合は尋ねる

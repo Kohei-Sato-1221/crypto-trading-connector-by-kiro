@@ -432,7 +432,7 @@ export const useOrderForm = (
 
 ## テスト戦略
 
-### ユニットテスト
+### フロントエンドのユニットテスト
 
 各コンポーネントとComposableに対してユニットテストを実装します。
 
@@ -444,6 +444,68 @@ export const useOrderForm = (
 - OrderForm: フォーム全体の統合動作
 
 **テストフレームワーク:** Vitest（既存プロジェクトと同様）
+
+### バックエンドのユニットテスト
+
+Repository、Service、Handler層に対してユニットテストを実装します。
+
+**テスト対象:**
+- OrderRepository: buy_ordersテーブルへの注文記録
+- OrderService: ビジネスロジック（バリデーション、計算）
+- OrderHandler: APIエンドポイントのリクエスト/レスポンス処理
+
+**テストフレームワーク:** Go標準のtestingパッケージ
+
+**bitFlyer APIのモック:**
+bitFlyerのプライベートAPI（注文発注、残高取得など）は実際のAPIを呼び出すとテストが困難なため、MockClientを作成してテストします。
+
+```go
+// MockBitFlyerClient はテスト用のモッククライアント
+type MockBitFlyerClient struct {
+    GetBalanceFunc func() (float64, error)
+    SendOrderFunc  func(req *OrderRequest) (*OrderResponse, error)
+}
+
+func (m *MockBitFlyerClient) GetBalance() (float64, error) {
+    if m.GetBalanceFunc != nil {
+        return m.GetBalanceFunc()
+    }
+    return 1000000.0, nil // デフォルト値
+}
+
+func (m *MockBitFlyerClient) SendOrder(req *OrderRequest) (*OrderResponse, error) {
+    if m.SendOrderFunc != nil {
+        return m.SendOrderFunc(req)
+    }
+    return &OrderResponse{
+        OrderID: "TEST_ORDER_123",
+        Status:  "ACTIVE",
+    }, nil
+}
+```
+
+**テスト例:**
+```go
+func TestOrderService_CreateOrder_Success(t *testing.T) {
+    mockClient := &MockBitFlyerClient{
+        GetBalanceFunc: func() (float64, error) {
+            return 2000000.0, nil
+        },
+        SendOrderFunc: func(req *OrderRequest) (*OrderResponse, error) {
+            return &OrderResponse{
+                OrderID: "ORDER_123",
+                Status:  "ACTIVE",
+            }, nil
+        },
+    }
+    
+    service := NewOrderService(mockClient, mockRepo)
+    order, err := service.CreateOrder(createOrderReq)
+    
+    assert.NoError(t, err)
+    assert.Equal(t, "ORDER_123", order.OrderID)
+}
+```
 
 ### プロパティベーステスト
 
@@ -621,41 +683,32 @@ GET /api/v1/orders?limit=10&offset=0
 
 ### データモデル
 
-#### Order（注文）テーブル
+#### 既存テーブルの利用
 
-```sql
-CREATE TABLE orders (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL,
-  pair VARCHAR(20) NOT NULL,
-  order_type VARCHAR(20) NOT NULL,
-  price DECIMAL(20, 2) NOT NULL,
-  amount DECIMAL(20, 8) NOT NULL,
-  estimated_total DECIMAL(20, 2) NOT NULL,
-  status VARCHAR(20) NOT NULL DEFAULT 'pending',
-  created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
-);
+このプロジェクトでは、別のアプリケーションで管理されている既存のデータベーススキーマを使用します。新しいテーブルの作成やマイグレーションは不要です。
 
-CREATE INDEX idx_orders_user_id ON orders(user_id);
-CREATE INDEX idx_orders_created_at ON orders(created_at DESC);
-```
+**使用する既存テーブル:**
 
-#### Balance（残高）テーブル
+- **buy_orders**: 購入注文を記録するテーブル
+  - `order_id`: 注文ID（bitFlyerから返される）
+  - `product_code`: 通貨ペア（例: BTC_JPY）
+  - `side`: 注文サイド（BUY）
+  - `price`: 注文価格
+  - `size`: 注文数量
+  - `exchange`: 取引所名（bitflyer）
+  - `filled`: 約定状態（0: 未約定, 1: 約定済み）
+  - `timestamp`: 作成日時
+  - `updatetime`: 更新日時
 
-```sql
-CREATE TABLE balances (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL UNIQUE,
-  available_balance DECIMAL(20, 2) NOT NULL DEFAULT 0,
-  currency VARCHAR(10) NOT NULL DEFAULT 'JPY',
-  updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
-  CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id)
-);
+- **price_histories**: 価格履歴テーブル（価格データ取得用）
+  - `product_code`: 通貨ペア
+  - `price`: 価格
+  - `price_ratio_24h`: 24時間変動率
+  - `datetime`: 日時
 
-CREATE INDEX idx_balances_user_id ON balances(user_id);
-```
+**注意事項:**
+- 残高情報は外部API（bitFlyer API）から取得するため、DBには保存しません
+- 注文作成時は`buy_orders`テーブルに記録し、その後bitFlyer APIを呼び出します
 
 ### レイヤー構造
 
@@ -697,20 +750,43 @@ type OrderServiceImpl struct {
 
 #### 3. Repository層（internal/repository/order_repository.go）
 
-データベースアクセスを担当。
+データベースアクセスとbitFlyer API呼び出しを担当。
 
 ```go
+// OrderRepository はbuy_ordersテーブルへのアクセスを提供
 type OrderRepository interface {
-    Create(order *Order) error
-    GetByID(id string) (*Order, error)
-    GetByUserID(userID string, limit, offset int) ([]Order, error)
+    // 既存のbuy_ordersテーブルに注文を記録
+    SaveOrder(order *BuyOrder) error
+    GetOrderByID(orderID string) (*BuyOrder, error)
 }
 
-type BalanceRepository interface {
-    GetByUserID(userID string) (*Balance, error)
-    UpdateBalance(userID string, amount float64) error
+// BitFlyerClient はbitFlyer APIへのアクセスを提供するインターフェース
+type BitFlyerClient interface {
+    // bitFlyer APIから残高を取得
+    GetBalance() (float64, error)
+    // bitFlyer APIに注文を送信
+    SendOrder(req *OrderRequest) (*OrderResponse, error)
+}
+
+// BitFlyerClientImpl は実際のbitFlyer APIを呼び出す実装
+type BitFlyerClientImpl struct {
+    apiKey    string
+    apiSecret string
+    baseURL   string
+}
+
+// MockBitFlyerClient はテスト用のモック実装
+type MockBitFlyerClient struct {
+    GetBalanceFunc func() (float64, error)
+    SendOrderFunc  func(req *OrderRequest) (*OrderResponse, error)
 }
 ```
+
+**注意事項:**
+- 残高情報はbitFlyer APIから直接取得し、DBには保存しません
+- 注文作成時は、まずbitFlyer APIに送信し、成功したらbuy_ordersテーブルに記録します
+- テストでは`MockBitFlyerClient`を使用して、実際のAPI呼び出しを避けます
+- インターフェースを使用することで、実装とモックを簡単に切り替えられます
 
 ### バリデーション
 
@@ -747,13 +823,16 @@ type BalanceRepository interface {
 
 ### トランザクション管理
 
-注文作成時は以下の操作をトランザクション内で実行：
+注文作成時は以下の操作を順次実行：
 
-1. 残高の確認
-2. 注文レコードの作成
-3. 残高の更新（減算）
+1. bitFlyer APIから残高を確認
+2. 入力値のバリデーション（価格、数量、残高チェック）
+3. bitFlyer APIに注文を送信
+4. 成功した場合、buy_ordersテーブルに注文を記録
 
-いずれかの操作が失敗した場合、すべてロールバック。
+**エラーハンドリング:**
+- bitFlyer API呼び出しが失敗した場合、エラーを返してDB記録は行わない
+- DB記録が失敗した場合、エラーログを記録（注文自体はbitFlyerに送信済み）
 
 ### セキュリティ
 
@@ -792,11 +871,10 @@ type BalanceRepository interface {
 
 ### フェーズ3: バックエンド実装
 
-1. データベーススキーマの作成（マイグレーション）
-2. Repository層の実装
-3. Service層の実装（ビジネスロジック）
-4. Handler層の実装（APIエンドポイント）
-5. ユニットテストの実装
+1. Repository層の実装（既存DBとbitFlyer API連携）
+2. Service層の実装（ビジネスロジック）
+3. Handler層の実装（APIエンドポイント）
+4. ユニットテストの実装
 
 ### フェーズ4: 統合
 
