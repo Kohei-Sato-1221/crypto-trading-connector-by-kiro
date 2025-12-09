@@ -69,20 +69,20 @@
   - TypeScriptエラーなし
   - レスポンシブデザインとアクセシビリティ対応完了
 
-- [ ] 2. API設計とOpenAPI仕様書の作成
+- [x] 2. API設計とOpenAPI仕様書の作成
   - 注文作成、残高取得のエンドポイント定義
   - リクエスト/レスポンスモデルの定義
   - エラーレスポンスの定義
   - _要件: 7.1, 8.2, 8.3, 8.4_
 
-- [ ] 2.1 OpenAPI仕様書の作成
+- [x] 2.1 OpenAPI仕様書の作成
   - openapi.yamlに注文関連のエンドポイントを追加
   - POST /api/v1/orders: 注文作成
   - GET /api/v1/balance: 残高取得
   - スキーマ定義（Order, Balance, CreateOrderRequest, ErrorResponse）
   - _要件: 7.1, 8.2, 8.3, 8.4_
 
-- [ ] 2.2 OpenAPI仕様書のレビュー
+- [x] 2.2 OpenAPI仕様書のレビュー
   - 仕様書の妥当性確認
   - エンドポイントとモデルの整合性確認
 
@@ -91,7 +91,7 @@
   - フロントエンドの型定義を更新
   - _要件: 8.2_
 
-- [ ] 3.1 バックエンドのコード生成
+- [-] 3.1 バックエンドのコード生成
   - oapi-codegenを使用してGoの型定義を生成
   - internal/generated/models.goを更新
   - _要件: 8.2_
