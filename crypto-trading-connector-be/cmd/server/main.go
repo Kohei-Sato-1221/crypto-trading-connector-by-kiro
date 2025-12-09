@@ -29,16 +29,29 @@ func main() {
 
 	// Initialize bitFlyer client
 	bitflyerAPIURL := getEnv("BITFLYER_API_URL", "https://api.bitflyer.com")
-	bitflyerClient := client.NewBitFlyerClient(bitflyerAPIURL)
+	bitflyerAPIKey := getEnv("BITFLYER_API_KEY", "")
+	bitflyerAPISecret := getEnv("BITFLYER_API_SECRET", "")
+	
+	var bitflyerClient client.BitFlyerClient
+	if bitflyerAPIKey != "" && bitflyerAPISecret != "" {
+		bitflyerClient = client.NewBitFlyerClientWithAuth(bitflyerAPIURL, bitflyerAPIKey, bitflyerAPISecret)
+		log.Println("BitFlyer client initialized with authentication")
+	} else {
+		bitflyerClient = client.NewBitFlyerClient(bitflyerAPIURL)
+		log.Println("BitFlyer client initialized without authentication (public API only)")
+	}
 
-	// Initialize repository
+	// Initialize repositories
 	cryptoRepo := repository.NewMySQLCryptoRepository(db)
+	orderRepo := repository.NewOrderRepository(db)
 
-	// Initialize service
+	// Initialize services
 	cryptoService := service.NewCryptoService(cryptoRepo, bitflyerClient)
+	orderService := service.NewOrderService(bitflyerClient, orderRepo)
 
-	// Initialize handler
+	// Initialize handlers
 	cryptoHandler := handler.NewCryptoHandler(cryptoService)
+	orderHandler := handler.NewOrderHandler(orderService)
 
 	// Initialize Echo
 	e := echo.New()
@@ -57,12 +70,17 @@ func main() {
 	// Routes
 	api := e.Group("/api/v1")
 	{
+		// Crypto routes
 		crypto := api.Group("/crypto")
 		{
 			crypto.GET("/market", cryptoHandler.GetMarketData)
 			crypto.GET("/:id", cryptoHandler.GetCryptoByID)
 			crypto.GET("/:id/chart", cryptoHandler.GetChartData)
 		}
+
+		// Order routes
+		api.POST("/orders", orderHandler.CreateOrder)
+		api.GET("/balance", orderHandler.GetBalance)
 	}
 
 	// Start server on 0.0.0.0 to allow access from other devices
