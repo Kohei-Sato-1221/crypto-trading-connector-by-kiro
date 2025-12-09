@@ -1,12 +1,13 @@
 # Crypto Trading Connector
 
-暗号通貨取引Webアプリケーション（フロントエンド + バックエンドAPI）
+暗号通貨取引Webアプリケーション（フロントエンド + バックエンドAPI） 
 
 ## プロジェクト構成
 
 - **crypto-trading-connector-be**: バックエンドAPI（Go + Echo）
 - **crypto-trading-connector-fe**: フロントエンド（Nuxt 4 + TypeScript）
 - **openapi.yaml**: API仕様書（OpenAPI 3.0.3）
+- Kiroを用いて仕様駆動開発を行なっている。
 
 ## OpenAPIコード生成
 
