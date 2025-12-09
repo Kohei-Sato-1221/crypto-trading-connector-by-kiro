@@ -239,14 +239,18 @@ describe('useOrderForm - Property Based Tests', () => {
             price.value = price2
             const total2 = estimatedTotal.value
             
-            // Totals should be different (unless prices are the same)
-            if (Math.abs(price1 - price2) > 0.01) {
+            // Calculate expected totals
+            const expectedTotal1 = Math.floor(price1 * amount.value)
+            const expectedTotal2 = Math.floor(price2 * amount.value)
+            
+            // Totals should be different only if the floored results are different
+            if (expectedTotal1 !== expectedTotal2) {
               expect(total1).not.toBe(total2)
             }
             
-            // Each total should equal price × amount
-            expect(total1).toBe(Math.floor(price1 * amount.value))
-            expect(total2).toBe(Math.floor(price2 * amount.value))
+            // Each total should equal price × amount (floored)
+            expect(total1).toBe(expectedTotal1)
+            expect(total2).toBe(expectedTotal2)
           }
         ),
         { numRuns: 100 }
