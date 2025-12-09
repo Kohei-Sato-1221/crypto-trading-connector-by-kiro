@@ -56,10 +56,7 @@ onMounted(() => {
   initializeDefaults()
 })
 
-// Reinitialize when pair changes
-watch(pair, () => {
-  initializeDefaults()
-})
+// Note: Pair change handling is done in useOrderForm composable
 
 const symbol = computed(() => {
   return props.selectedPair === 'BTC/JPY' ? 'BTC' : 'ETH'
@@ -93,10 +90,10 @@ const handleSubmit = () => {
 
 <template>
   <div class="bg-[#1c2936] rounded-t-3xl shadow-[0px_-4px_20px_0px_rgba(0,0,0,0.3)] border-t border-gray-800">
-    <div class="px-6 py-6 space-y-6">
+    <div class="px-4 sm:px-6 py-6 space-y-6">
       <!-- Header -->
       <div class="flex items-center justify-between">
-        <h2 class="text-white text-lg font-bold">
+        <h2 class="text-white text-lg sm:text-xl font-bold">
           Order Details
         </h2>
         
@@ -128,13 +125,14 @@ const handleSubmit = () => {
       />
 
       <!-- Available Balance -->
-      <div class="bg-[rgba(19,127,236,0.1)] border border-[rgba(19,127,236,0.2)] rounded-lg p-3 flex items-center justify-between">
+      <div class="bg-[rgba(19,127,236,0.1)] border border-[rgba(19,127,236,0.2)] rounded-lg p-3.5 sm:p-3 flex items-center justify-between">
         <div class="flex items-center gap-2">
           <svg
             class="w-4 h-4 text-blue-200"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
+            aria-hidden="true"
           >
             <path
               stroke-linecap="round"
@@ -152,21 +150,23 @@ const handleSubmit = () => {
       <div class="border-t border-gray-800 pt-4">
         <div class="flex items-center justify-between mb-4">
           <span class="text-slate-400 text-sm font-medium">Estimated Total</span>
-          <span class="text-white text-2xl font-extrabold tracking-tight">{{ formattedTotal }}</span>
+          <span class="text-white text-2xl sm:text-3xl font-extrabold tracking-tight">{{ formattedTotal }}</span>
         </div>
 
         <!-- Submit Button -->
         <button
           @click="handleSubmit"
           :disabled="!isValidOrder"
-          class="w-full bg-[#137fec] hover:bg-[#1068c4] disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl shadow-[0px_10px_15px_-3px_rgba(19,127,236,0.3),0px_4px_6px_-4px_rgba(19,127,236,0.3)] transition-all duration-200 flex items-center justify-center gap-2"
+          class="w-full bg-[#137fec] hover:bg-[#1068c4] active:bg-[#0e5aa8] disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 sm:py-3.5 rounded-xl shadow-[0px_10px_15px_-3px_rgba(19,127,236,0.3),0px_4px_6px_-4px_rgba(19,127,236,0.3)] transition-all duration-200 flex items-center justify-center gap-2 touch-manipulation min-h-[52px]"
+          aria-label="Place buy order"
         >
-          <span>Place Buy Order</span>
+          <span class="text-base sm:text-sm">Place Buy Order</span>
           <svg
-            class="w-6 h-6"
+            class="w-6 h-6 sm:w-5 sm:h-5"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
+            aria-hidden="true"
           >
             <path
               stroke-linecap="round"
@@ -180,16 +180,17 @@ const handleSubmit = () => {
         <!-- Warning if balance insufficient -->
         <div
           v-if="!isBalanceSufficient && estimatedTotal > 0"
-          class="mt-3 text-[#fa6238] text-xs text-center"
+          class="mt-3 text-[#fa6238] text-xs text-center font-medium"
+          role="alert"
         >
           Insufficient balance for this order
         </div>
       </div>
 
       <!-- Terms -->
-      <div class="text-slate-500 text-[10px] text-center leading-relaxed">
+      <div class="text-slate-500 text-[10px] sm:text-xs text-center leading-relaxed">
         Market prices are volatile. By placing this order, you agree to our
-        <span class="underline">Terms of Service</span>.
+        <span class="underline cursor-pointer hover:text-slate-400">Terms of Service</span>.
       </div>
     </div>
   </div>

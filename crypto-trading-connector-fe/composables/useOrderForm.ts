@@ -106,14 +106,20 @@ export const useOrderForm = (
     initializeDefaults()
   }
 
-  // Watch for pair changes and reinitialize
+  // Watch for pair changes and reset amount to new minimum
   watch(pair, () => {
-    initializeDefaults()
+    // When pair changes, update amount to the new pair's minimum
+    amount.value = minAmount.value
+    // Also update price if currentPrice is available
+    if (currentPrice.value > 0) {
+      price.value = roundPrice(currentPrice.value, pair.value)
+    }
   })
 
-  // Watch for current price changes and update price if needed
+  // Watch for current price changes and update price
+  // This handles both initial load and pair changes (when new price data arrives)
   watch(currentPrice, (newPrice) => {
-    if (price.value === 0 || newPrice === 0) {
+    if (newPrice > 0) {
       price.value = roundPrice(newPrice, pair.value)
     }
   })

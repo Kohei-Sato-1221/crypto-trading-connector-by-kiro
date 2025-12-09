@@ -43,16 +43,17 @@ const handleDecrement = () => {
 
     <!-- Input Field with Increment/Decrement Buttons -->
     <div class="bg-[#233648] rounded-xl overflow-hidden">
-      <div class="flex items-center px-4 py-3">
+      <div class="flex items-center px-4 py-4 sm:py-3">
         <!-- Decrement Button -->
         <button
           @click="handleDecrement"
-          class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#2a3f54] transition-colors"
+          class="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg hover:bg-[#2a3f54] active:bg-[#324a62] transition-colors touch-manipulation"
           :disabled="modelValue <= minAmount"
           :class="modelValue <= minAmount ? 'opacity-50 cursor-not-allowed' : ''"
+          aria-label="Decrease amount"
         >
           <svg
-            class="w-4 h-4 text-white transform scale-y-[-1]"
+            class="w-5 h-5 sm:w-4 sm:h-4 text-white transform scale-y-[-1]"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -72,17 +73,19 @@ const handleDecrement = () => {
           @input="formattedValue = ($event.target as HTMLInputElement).value"
           type="text"
           inputmode="decimal"
-          class="flex-1 bg-transparent text-white text-lg font-bold text-center outline-none mx-2"
+          class="flex-1 bg-transparent text-white text-xl sm:text-lg font-bold text-center outline-none mx-2 min-h-[24px]"
           placeholder="0"
+          aria-label="Amount"
         />
 
         <!-- Increment Button -->
         <button
           @click="handleIncrement"
-          class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#2a3f54] transition-colors"
+          class="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center rounded-lg hover:bg-[#2a3f54] active:bg-[#324a62] transition-colors touch-manipulation"
+          aria-label="Increase amount"
         >
           <svg
-            class="w-4 h-4 text-white"
+            class="w-5 h-5 sm:w-4 sm:h-4 text-white"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"

@@ -18,17 +18,17 @@ const selectPair = (pair: 'BTC/JPY' | 'ETH/JPY') => {
 </script>
 
 <template>
-  <div class="px-4 pt-4">
+  <div class="px-4 pt-4 sm:pt-6">
     <div class="bg-[#233648] rounded-xl p-1 flex gap-1">
       <button
         v-for="pair in pairs"
         :key="pair"
         @click="selectPair(pair)"
-        class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all duration-200"
+        class="flex-1 py-3 sm:py-2.5 rounded-lg text-sm font-bold transition-all duration-200 min-h-[44px] touch-manipulation"
         :class="
           selectedPair === pair
             ? 'bg-[#101922] text-[#92adc9] shadow-sm'
-            : 'text-[#92adc9] hover:bg-[#101922]/50'
+            : 'text-[#92adc9] hover:bg-[#101922]/50 active:bg-[#101922]/70'
         "
       >
         {{ pair }}

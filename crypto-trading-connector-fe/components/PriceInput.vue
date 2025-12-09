@@ -39,13 +39,13 @@ const setDiscountPrice = (percentage: number) => {
 
     <!-- Input Field -->
     <div class="bg-[#233648] rounded-xl overflow-hidden">
-      <div class="flex items-center px-4 py-3">
+      <div class="flex items-center px-4 py-4 sm:py-3">
         <input
           :value="formattedValue"
           @input="formattedValue = ($event.target as HTMLInputElement).value"
           type="text"
           inputmode="numeric"
-          class="flex-1 bg-transparent text-white text-lg font-bold text-right outline-none"
+          class="flex-1 bg-transparent text-white text-xl sm:text-lg font-bold text-right outline-none min-h-[24px]"
           placeholder="0"
         />
         <div class="ml-3 text-slate-400 text-sm font-semibold">
@@ -60,7 +60,7 @@ const setDiscountPrice = (percentage: number) => {
         v-for="percentage in discountPercentages"
         :key="percentage"
         @click="setDiscountPrice(percentage)"
-        class="flex-1 bg-[#233648] hover:bg-[#2a3f54] text-slate-400 text-xs font-bold py-2 rounded transition-colors"
+        class="flex-1 bg-[#233648] hover:bg-[#2a3f54] active:bg-[#324a62] text-slate-400 text-xs font-bold py-3 sm:py-2 rounded-lg transition-colors touch-manipulation min-h-[44px] sm:min-h-0"
       >
         {{ percentage }}%
       </button>

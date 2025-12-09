@@ -20,14 +20,14 @@ const formattedChange = computed(() => {
 </script>
 
 <template>
-  <div class="px-4 py-6 text-center">
+  <div class="px-4 py-6 sm:py-8 text-center">
     <!-- Label -->
-    <div class="text-[#92adc9] text-sm font-medium tracking-wider uppercase mb-3">
+    <div class="text-[#92adc9] text-xs sm:text-sm font-medium tracking-wider uppercase mb-3">
       Current Price
     </div>
 
     <!-- Price -->
-    <div class="text-white text-4xl font-extrabold tracking-tight mb-3">
+    <div class="text-white text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight mb-3">
       {{ formattedPrice }}
     </div>
 
@@ -40,6 +40,8 @@ const formattedChange = computed(() => {
             ? 'bg-[rgba(11,218,91,0.1)]'
             : 'bg-[rgba(250,98,56,0.1)]'
         "
+        role="status"
+        :aria-label="`Price change: ${formattedChange} in 24 hours`"
       >
         <!-- Arrow Icon -->
         <svg
@@ -52,6 +54,7 @@ const formattedChange = computed(() => {
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"
+          aria-hidden="true"
         >
           <path
             stroke-linecap="round"
