@@ -3,13 +3,13 @@ package main
 import (
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/crypto-trading-connector/backend/internal/client"
 	"github.com/crypto-trading-connector/backend/internal/handler"
 	"github.com/crypto-trading-connector/backend/internal/repository"
 	"github.com/crypto-trading-connector/backend/internal/service"
 	"github.com/crypto-trading-connector/backend/pkg/database"
+	"github.com/crypto-trading-connector/backend/utils"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
@@ -27,18 +27,18 @@ func main() {
 
 	log.Println("Successfully connected to database")
 
-	// Initialize bitFlyer client
-	bitflyerAPIURL := getEnv("BITFLYER_API_URL", "https://api.bitflyer.com")
-	bitflyerAPIKey := getEnv("BITFLYER_API_KEY", "")
-	bitflyerAPISecret := getEnv("BITFLYER_API_SECRET", "")
+	// Initialize exchange client (bitFlyer)
+	bitflyerAPIURL := utils.GetEnv("BITFLYER_API_URL", "https://api.bitflyer.com")
+	bitflyerAPIKey := utils.GetEnv("BITFLYER_API_KEY", "xxxx")
+	bitflyerAPISecret := utils.GetEnv("BITFLYER_API_SECRET", "xxxx")
 	
-	var bitflyerClient client.BitFlyerClient
+	var exchangeClient client.CryptoExchangeClient
 	if bitflyerAPIKey != "" && bitflyerAPISecret != "" {
-		bitflyerClient = client.NewBitFlyerClientWithAuth(bitflyerAPIURL, bitflyerAPIKey, bitflyerAPISecret)
-		log.Println("BitFlyer client initialized with authentication")
+		exchangeClient = client.NewBitFlyerClientWithAuth(bitflyerAPIURL, bitflyerAPIKey, bitflyerAPISecret)
+		log.Println("Exchange client (bitFlyer) initialized with authentication")
 	} else {
-		bitflyerClient = client.NewBitFlyerClient(bitflyerAPIURL)
-		log.Println("BitFlyer client initialized without authentication (public API only)")
+		exchangeClient = client.NewBitFlyerClient(bitflyerAPIURL)
+		log.Println("Exchange client (bitFlyer) initialized without authentication (public API only)")
 	}
 
 	// Initialize repositories
@@ -46,8 +46,8 @@ func main() {
 	orderRepo := repository.NewOrderRepository(db)
 
 	// Initialize services
-	cryptoService := service.NewCryptoService(cryptoRepo, bitflyerClient)
-	orderService := service.NewOrderService(bitflyerClient, orderRepo)
+	cryptoService := service.NewCryptoService(cryptoRepo, exchangeClient)
+	orderService := service.NewOrderService(exchangeClient, orderRepo)
 
 	// Initialize handlers
 	cryptoHandler := handler.NewCryptoHandler(cryptoService)
@@ -84,19 +84,10 @@ func main() {
 	}
 
 	// Start server on 0.0.0.0 to allow access from other devices
-	port := getEnv("SERVER_PORT", "8080")
+	port := utils.GetEnv("SERVER_PORT", "8080")
 	log.Printf("Starting server on 0.0.0.0:%s", port)
 	log.Printf("Local: http://localhost:%s", port)
 	if err := e.Start(fmt.Sprintf("0.0.0.0:%s", port)); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
-}
-
-// getEnv gets an environment variable or returns a default value
-func getEnv(key, defaultValue string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return defaultValue
-	}
-	return value
 }

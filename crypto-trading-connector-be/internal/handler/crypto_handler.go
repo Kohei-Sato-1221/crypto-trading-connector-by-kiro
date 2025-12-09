@@ -37,7 +37,10 @@ func (h *CryptoHandler) GetCryptoByID(c echo.Context) error {
 		return handleError(c, http.StatusBadRequest, generated.BADREQUEST, "cryptocurrency ID is required")
 	}
 
-	cryptoData, err := h.service.GetCryptoByID(id)
+	// Get optional period parameter (defaults to 7d in service layer)
+	period := c.QueryParam("period")
+
+	cryptoData, err := h.service.GetCryptoByID(id, period)
 	if err != nil {
 		// Check if it's a not found error
 		if err.Error() == "cryptocurrency not found: "+id {

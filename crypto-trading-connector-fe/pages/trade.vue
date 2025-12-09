@@ -31,18 +31,6 @@ const symbol = computed(() => {
 
 const isPositive = computed(() => priceChange.value > 0)
 
-// Transform chart data for PriceChart component
-const transformedChartData = computed(() => {
-  return chartData.value.map(point => {
-    const date = new Date(point.timestamp)
-    const day = `${date.getMonth() + 1}/${date.getDate()}`
-    return {
-      day,
-      price: point.price
-    }
-  })
-})
-
 // Fetch data on mount
 onMounted(async () => {
   try {
@@ -134,7 +122,7 @@ const handleSubmitOrder = async (order: any) => {
           <!-- Chart -->
           <PriceChart
             v-else
-            :data="transformedChartData"
+            :data="chartData"
             :is-positive="isPositive"
             :currency="symbol"
           />

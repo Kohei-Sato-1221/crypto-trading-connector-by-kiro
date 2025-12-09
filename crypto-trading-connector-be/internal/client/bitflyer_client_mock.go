@@ -2,7 +2,7 @@ package client
 
 import "github.com/crypto-trading-connector/backend/internal/model"
 
-// MockBitFlyerClient is a mock implementation of BitFlyerClient for testing
+// MockBitFlyerClient is a mock implementation of CryptoExchangeClient for testing
 type MockBitFlyerClient struct {
 	GetTickerFunc  func(productCode string) (*model.TickerResponse, error)
 	GetBalanceFunc func() (float64, error)
@@ -36,4 +36,17 @@ func (m *MockBitFlyerClient) SendOrder(req *model.BitFlyerOrderRequest) (*model.
 	return &model.BitFlyerOrderResponse{
 		ChildOrderAcceptanceID: "TEST_ORDER_123",
 	}, nil
+}
+
+// RoundPrice rounds the price according to the product code
+func (m *MockBitFlyerClient) RoundPrice(price float64, productCode string) float64 {
+	// Use the same logic as the real client
+	switch productCode {
+	case "BTC_JPY":
+		return float64(int(price/1000000)) * 1000000
+	case "ETH_JPY":
+		return float64(int(price/10000)) * 10000
+	default:
+		return float64(int(price))
+	}
 }

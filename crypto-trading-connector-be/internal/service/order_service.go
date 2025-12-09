@@ -20,14 +20,14 @@ type OrderService interface {
 
 // OrderServiceImpl implements OrderService
 type OrderServiceImpl struct {
-	bitflyerClient client.BitFlyerClient
+	exchangeClient client.CryptoExchangeClient
 	orderRepo      repository.OrderRepository
 }
 
 // NewOrderService creates a new order service
-func NewOrderService(bitflyerClient client.BitFlyerClient, orderRepo repository.OrderRepository) *OrderServiceImpl {
+func NewOrderService(exchangeClient client.CryptoExchangeClient, orderRepo repository.OrderRepository) *OrderServiceImpl {
 	return &OrderServiceImpl{
-		bitflyerClient: bitflyerClient,
+		exchangeClient: exchangeClient,
 		orderRepo:      orderRepo,
 	}
 }
@@ -39,8 +39,8 @@ func (s *OrderServiceImpl) CreateOrder(req *generated.CreateOrderRequest) (*gene
 		return nil, err
 	}
 
-	// Get balance from bitFlyer
-	balance, err := s.bitflyerClient.GetBalance()
+	// Get balance from exchange
+	balance, err := s.exchangeClient.GetBalance()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get balance: %w", err)
 	}
@@ -56,8 +56,8 @@ func (s *OrderServiceImpl) CreateOrder(req *generated.CreateOrderRequest) (*gene
 	// Convert pair format (BTC/JPY -> BTC_JPY)
 	productCode := strings.ReplaceAll(string(req.Pair), "/", "_")
 
-	// Send order to bitFlyer
-	bitflyerReq := &model.BitFlyerOrderRequest{
+	// Send order to exchange
+	exchangeReq := &model.BitFlyerOrderRequest{
 		ProductCode:    productCode,
 		ChildOrderType: "LIMIT",
 		Side:           "BUY",
@@ -66,14 +66,14 @@ func (s *OrderServiceImpl) CreateOrder(req *generated.CreateOrderRequest) (*gene
 		TimeInForce:    "GTC", // Good Till Cancelled
 	}
 
-	bitflyerResp, err := s.bitflyerClient.SendOrder(bitflyerReq)
+	exchangeResp, err := s.exchangeClient.SendOrder(exchangeReq)
 	if err != nil {
-		return nil, fmt.Errorf("failed to send order to bitFlyer: %w", err)
+		return nil, fmt.Errorf("failed to send order to exchange: %w", err)
 	}
 
 	// Save order to database
 	buyOrder := &model.BuyOrder{
-		OrderID:     bitflyerResp.ChildOrderAcceptanceID,
+		OrderID:     exchangeResp.ChildOrderAcceptanceID,
 		ProductCode: productCode,
 		Side:        "BUY",
 		Price:       req.Price,
@@ -85,16 +85,16 @@ func (s *OrderServiceImpl) CreateOrder(req *generated.CreateOrderRequest) (*gene
 	}
 
 	if err := s.orderRepo.SaveOrder(buyOrder); err != nil {
-		// Log error but don't fail - order was already sent to bitFlyer
+		// Log error but don't fail - order was already sent to exchange
 		fmt.Printf("Warning: failed to save order to database: %v\n", err)
 	}
 
 	// Create response
 	// Parse UUID from string
-	orderUUID, err := uuid.Parse(bitflyerResp.ChildOrderAcceptanceID)
+	orderUUID, err := uuid.Parse(exchangeResp.ChildOrderAcceptanceID)
 	if err != nil {
 		// If not a valid UUID, generate a new one
-		// In production, bitFlyer returns acceptance IDs that may not be UUIDs
+		// In production, exchanges may return acceptance IDs that are not UUIDs
 		orderUUID = uuid.New()
 	}
 
@@ -113,7 +113,7 @@ func (s *OrderServiceImpl) CreateOrder(req *generated.CreateOrderRequest) (*gene
 
 // GetBalance retrieves the current balance
 func (s *OrderServiceImpl) GetBalance() (*generated.Balance, error) {
-	balance, err := s.bitflyerClient.GetBalance()
+	balance, err := s.exchangeClient.GetBalance()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get balance: %w", err)
 	}
