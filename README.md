@@ -17,19 +17,19 @@
 バックエンドとフロントエンドの両方のコードを一度に生成：
 
 ```bash
-make generate-all
+make gen
 ```
 
 ### 個別生成
 
 バックエンドのみ：
 ```bash
-make generate-be
+make gen-be
 ```
 
 フロントエンドのみ：
 ```bash
-make generate-fe
+make gen-fe
 ```
 
 ### 生成されるファイル
@@ -63,14 +63,14 @@ make run
 ### OpenAPI仕様書を更新した場合
 
 1. `openapi.yaml`を編集
-2. コードを再生成: `make generate-all`
+2. コードを再生成: `make gen`
 3. 必要に応じて実装コードを更新
 4. テストを実行
 
 ### 新しいエンドポイントを追加する場合
 
 1. `openapi.yaml`に新しいエンドポイントを追加
-2. `make generate-all`でコードを生成
+2. `make gen`でコードを生成
 3. バックエンドにハンドラー、サービス、リポジトリを実装
 4. フロントエンドでcomposableを更新
 
