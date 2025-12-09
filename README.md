@@ -2,6 +2,9 @@
 
 暗号通貨取引Webアプリケーション（フロントエンド + バックエンドAPI） 
 
+<img width="476" height="931" alt="ctc-ss" src="https://github.com/user-attachments/assets/5abf8f5c-825f-42d7-9bcc-6839a4d8b83f" />
+
+
 ## プロジェクト構成
 
 - **crypto-trading-connector-be**: バックエンドAPI（Go + Echo）
