@@ -8,8 +8,13 @@ import PriceChart from '~/components/PriceChart.vue'
 import OrderForm from '~/components/OrderForm.vue'
 import NavigationBar from '~/components/NavigationBar.vue'
 
+// Get pair from query parameter, default to BTC/JPY
+const route = useRoute()
+const initialPair = (route.query.pair as string) || 'BTC/JPY'
+const validPair = (initialPair === 'ETH/JPY' || initialPair === 'BTC/JPY') ? initialPair : 'BTC/JPY'
+
 // State
-const selectedPair = ref<'BTC/JPY' | 'ETH/JPY'>('BTC/JPY')
+const selectedPair = ref<'BTC/JPY' | 'ETH/JPY'>(validPair)
 const selectedTimeFilter = ref('7D')
 
 // Use order data composable
