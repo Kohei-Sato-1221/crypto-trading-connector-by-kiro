@@ -26,3 +26,41 @@ type TickerResponse struct {
 	Volume          float64 `json:"volume"`
 	VolumeByProduct float64 `json:"volume_by_product"`
 }
+
+// BuyOrder represents a record from buy_orders table
+type BuyOrder struct {
+	ID          int
+	OrderID     string
+	ProductCode string
+	Side        string
+	Price       float64
+	Size        float64
+	Exchange    string
+	Filled      int
+	Strategy    int
+	Remarks     *string
+	Timestamp   string
+	Updatetime  string
+}
+
+// BitFlyerBalance represents balance response from bitFlyer API
+type BitFlyerBalance struct {
+	CurrencyCode string  `json:"currency_code"`
+	Amount       float64 `json:"amount"`
+	Available    float64 `json:"available"`
+}
+
+// BitFlyerOrderRequest represents order request to bitFlyer API
+type BitFlyerOrderRequest struct {
+	ProductCode    string  `json:"product_code"`
+	ChildOrderType string  `json:"child_order_type"` // LIMIT or MARKET
+	Side           string  `json:"side"`             // BUY or SELL
+	Price          float64 `json:"price"`
+	Size           float64 `json:"size"`
+	TimeInForce    string  `json:"time_in_force,omitempty"` // GTC, IOC, FOK
+}
+
+// BitFlyerOrderResponse represents order response from bitFlyer API
+type BitFlyerOrderResponse struct {
+	ChildOrderAcceptanceID string `json:"child_order_acceptance_id"`
+}

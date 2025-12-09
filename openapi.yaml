@@ -14,6 +14,10 @@ servers:
 tags:
   - name: crypto
     description: Cryptocurrency market data operations
+  - name: orders
+    description: Order management operations
+  - name: balance
+    description: Balance and wallet operations
 
 paths:
   /crypto/market:
@@ -104,6 +108,72 @@ paths:
                 $ref: '#/components/schemas/ChartResponse'
         '404':
           description: Cryptocurrency not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /orders:
+    post:
+      tags:
+        - orders
+      summary: Create a new order
+      description: Creates a new limit order for cryptocurrency trading
+      operationId: createOrder
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '402':
+          description: Insufficient balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /balance:
+    get:
+      tags:
+        - balance
+      summary: Get user balance
+      description: Returns the current available balance for the authenticated user
+      operationId: getBalance
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Balance'
+        '401':
+          description: Unauthorized
           content:
             application/json:
               schema:
@@ -220,6 +290,118 @@ components:
           enum: [24h, 7d, 30d, 1y, all]
           example: 7d
 
+    CreateOrderRequest:
+      type: object
+      required:
+        - pair
+        - orderType
+        - price
+        - amount
+      properties:
+        pair:
+          type: string
+          description: Trading pair
+          enum: [BTC/JPY, ETH/JPY]
+          example: BTC/JPY
+        orderType:
+          type: string
+          description: Order type (currently only limit orders supported)
+          enum: [limit]
+          example: limit
+        price:
+          type: number
+          format: double
+          description: Limit price in JPY
+          minimum: 0
+          example: 14000000
+        amount:
+          type: number
+          format: double
+          description: Amount of cryptocurrency to buy
+          minimum: 0.001
+          example: 0.001
+
+    Order:
+      type: object
+      required:
+        - orderId
+        - pair
+        - orderType
+        - price
+        - amount
+        - estimatedTotal
+        - status
+        - createdAt
+      properties:
+        orderId:
+          type: string
+          format: uuid
+          description: Unique order identifier
+          example: 550e8400-e29b-41d4-a716-446655440000
+        pair:
+          type: string
+          description: Trading pair
+          enum: [BTC/JPY, ETH/JPY]
+          example: BTC/JPY
+        orderType:
+          type: string
+          description: Order type
+          enum: [limit]
+          example: limit
+        price:
+          type: number
+          format: double
+          description: Limit price in JPY
+          example: 14000000
+        amount:
+          type: number
+          format: double
+          description: Amount of cryptocurrency
+          example: 0.001
+        estimatedTotal:
+          type: number
+          format: double
+          description: Estimated total cost in JPY (price * amount)
+          example: 14000
+        status:
+          type: string
+          description: Order status
+          enum: [pending, completed, cancelled, failed]
+          example: pending
+        createdAt:
+          type: string
+          format: date-time
+          description: Order creation timestamp
+          example: 2024-01-01T00:00:00Z
+        updatedAt:
+          type: string
+          format: date-time
+          description: Order last update timestamp
+          example: 2024-01-01T00:00:00Z
+
+    Balance:
+      type: object
+      required:
+        - availableBalance
+        - currency
+        - timestamp
+      properties:
+        availableBalance:
+          type: number
+          format: double
+          description: Available balance in JPY
+          example: 1540200
+        currency:
+          type: string
+          description: Currency code
+          enum: [JPY]
+          example: JPY
+        timestamp:
+          type: integer
+          format: int64
+          description: Unix timestamp of the balance snapshot
+          example: 1704067200
+
     ErrorResponse:
       type: object
       required:
@@ -229,8 +411,23 @@ components:
         error:
           type: string
           description: Error type
-          example: NOT_FOUND
+          enum: 
+            - NOT_FOUND
+            - BAD_REQUEST
+            - INVALID_REQUEST
+            - INVALID_AMOUNT
+            - INVALID_PRICE
+            - UNSUPPORTED_PAIR
+            - INSUFFICIENT_BALANCE
+            - UNAUTHORIZED
+            - INTERNAL_ERROR
+            - INTERNAL_SERVER_ERROR
+          example: INSUFFICIENT_BALANCE
         message:
           type: string
           description: Human-readable error message
-          example: Cryptocurrency not found
+          example: Available balance is insufficient for this order
+        details:
+          type: object
+          description: Additional error details (optional)
+          additionalProperties: true

@@ -25,7 +25,8 @@ const formattedChange = computed(() => {
 })
 
 const handleTrade = () => {
-  navigateTo('/trade')
+  // Pass the pair as a query parameter
+  navigateTo(`/trade?pair=${encodeURIComponent(props.crypto.pair)}`)
 }
 </script>
 

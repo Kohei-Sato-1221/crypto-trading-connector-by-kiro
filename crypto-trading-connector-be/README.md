@@ -278,17 +278,42 @@ MySQL（RDS）の`price_histories`テーブルから取得：
 ### Makefileコマンド
 
 ```bash
-make run        # サーバーを起動
-make test       # ユニットテストを実行
-make e2e-test   # E2Eテストを実行
-make fmt        # コードをフォーマット
-make vet        # go vetを実行
-make lint       # linterを実行（golangci-lintが必要）
-make tidy       # go mod tidyを実行
-make build      # バイナリをビルド
-make clean      # ビルド成果物を削除
-make help       # ヘルプを表示
+make run          # サーバーを起動
+make test         # ユニットテストを実行
+make e2e-test     # E2Eテストを実行
+make fmt          # コードをフォーマット
+make vet          # go vetを実行
+make lint         # linterを実行（golangci-lintが必要）
+make tidy         # go mod tidyを実行
+make build        # バイナリをビルド
+make clean        # ビルド成果物を削除
+make gen          # OpenAPI仕様書からコード生成
+make get-balance  # bitFlyer APIから残高を取得
+make buy-order    # BTC/ETHの買い注文を発注（現在価格の97%）
+make help         # ヘルプを表示
 ```
+
+### bitFlyer APIコマンド
+
+#### 残高確認
+
+```bash
+make get-balance
+```
+
+bitFlyer APIから現在のJPY残高を取得します。
+
+#### 買い注文の発注
+
+```bash
+make buy-order
+```
+
+BTCとETHの買い注文を現在価格の97%で発注します：
+- BTC: 0.001 BTC
+- ETH: 0.01 ETH
+
+**注意:** このコマンドは実際に注文を発注します。`.env`ファイルに正しいbitFlyer APIキーとシークレットが設定されている必要があります。
 
 ### テスト戦略
 

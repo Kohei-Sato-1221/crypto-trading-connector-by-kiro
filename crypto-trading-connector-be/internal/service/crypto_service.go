@@ -12,21 +12,21 @@ import (
 // CryptoService defines the interface for cryptocurrency business logic
 type CryptoService interface {
 	GetMarketData() (*generated.MarketResponse, error)
-	GetCryptoByID(id string) (*generated.CryptoData, error)
+	GetCryptoByID(id string, period string) (*generated.CryptoData, error)
 	GetChartData(id string, period string) (*generated.ChartResponse, error)
 }
 
 // CryptoServiceImpl implements CryptoService
 type CryptoServiceImpl struct {
 	repo           repository.CryptoRepository
-	bitflyerClient client.BitFlyerClient
+	exchangeClient client.CryptoExchangeClient
 }
 
 // NewCryptoService creates a new crypto service
-func NewCryptoService(repo repository.CryptoRepository, bitflyerClient client.BitFlyerClient) *CryptoServiceImpl {
+func NewCryptoService(repo repository.CryptoRepository, exchangeClient client.CryptoExchangeClient) *CryptoServiceImpl {
 	return &CryptoServiceImpl{
 		repo:           repo,
-		bitflyerClient: bitflyerClient,
+		exchangeClient: exchangeClient,
 	}
 }
 
@@ -67,8 +67,8 @@ func (s *CryptoServiceImpl) GetMarketData() (*generated.MarketResponse, error) {
 	var cryptoDataList []generated.CryptoData
 
 	for _, config := range cryptoConfigs {
-		// Get current price from bitFlyer API
-		ticker, err := s.bitflyerClient.GetTicker(config.ProductCode)
+		// Get current price from exchange API
+		ticker, err := s.exchangeClient.GetTicker(config.ProductCode)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get ticker for %s: %w", config.ProductCode, err)
 		}
@@ -104,7 +104,7 @@ func (s *CryptoServiceImpl) GetMarketData() (*generated.MarketResponse, error) {
 }
 
 // GetCryptoByID retrieves data for a specific cryptocurrency
-func (s *CryptoServiceImpl) GetCryptoByID(id string) (*generated.CryptoData, error) {
+func (s *CryptoServiceImpl) GetCryptoByID(id string, period string) (*generated.CryptoData, error) {
 	// Find config for the requested ID
 	var config *cryptoConfig
 	for _, c := range cryptoConfigs {
@@ -118,14 +118,22 @@ func (s *CryptoServiceImpl) GetCryptoByID(id string) (*generated.CryptoData, err
 		return nil, fmt.Errorf("cryptocurrency not found: %s", id)
 	}
 
-	// Get current price from bitFlyer API
-	ticker, err := s.bitflyerClient.GetTicker(config.ProductCode)
+	// Default period is 7d
+	if period == "" {
+		period = "7d"
+	}
+
+	// Convert period to days
+	days := periodToDays(period)
+
+	// Get current price from exchange API
+	ticker, err := s.exchangeClient.GetTicker(config.ProductCode)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get ticker for %s: %w", config.ProductCode, err)
 	}
 
-	// Get chart data from database (last 7 days)
-	chartData, err := s.repo.GetDailyAveragePrices(config.ProductCode, 7)
+	// Get chart data from database with specified period
+	chartData, err := s.repo.GetDailyAveragePrices(config.ProductCode, days)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get chart data for %s: %w", config.ProductCode, err)
 	}

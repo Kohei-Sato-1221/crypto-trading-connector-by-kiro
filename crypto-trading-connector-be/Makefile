@@ -1,4 +1,4 @@
-.PHONY: run test fmt help e2e-test unit-test
+.PHONY: run test fmt help e2e-test unit-test get-balance buy-order
 
 # Default target
 .DEFAULT_GOAL := help
@@ -118,6 +118,16 @@ gen:
 	@echo "Generated: internal/generated/models.go"
 	@go fmt ./internal/generated/...
 
+## get-balance: Fetch JPY balance from bitFlyer API
+get-balance:
+	@echo "Fetching balance from bitFlyer API..."
+	@go run cmd/get-balance/main.go
+
+## buy-order: Place buy orders for BTC and ETH at 97% of current price
+buy-order:
+	@echo "Placing buy orders for BTC and ETH..."
+	@go run cmd/buy-order/main.go
+
 ## help: Show this help message
 help:
 	@echo "Usage: make [target]"
@@ -131,5 +141,9 @@ help:
 	@echo "  ethereum        - GET /api/v1/crypto/ethereum"
 	@echo "  bitcoin-chart   - GET /api/v1/crypto/bitcoin/chart?period=7d"
 	@echo "  ethereum-chart  - GET /api/v1/crypto/ethereum/chart?period=7d"
+	@echo ""
+	@echo "bitFlyer API commands:"
+	@echo "  make get-balance - Fetch JPY balance from bitFlyer API"
+	@echo "  make buy-order   - Place buy orders for BTC and ETH at 97% of current price"
 	@echo ""
 	@echo "Example: make curl a=market"
