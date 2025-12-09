@@ -8,6 +8,7 @@ interface Props {
   selectedPair: 'BTC/JPY' | 'ETH/JPY'
   currentPrice: number
   availableBalance: number
+  onSubmitOrder?: (order: any) => Promise<void>
 }
 
 interface Emits {
@@ -22,6 +23,11 @@ interface Emits {
 
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
+
+// State for submission
+const isSubmitting = ref(false)
+const submitError = ref<string | null>(null)
+const submitSuccess = ref(false)
 
 const pair = computed(() => props.selectedPair)
 const currentPriceRef = ref(props.currentPrice)
@@ -70,21 +76,56 @@ const formattedTotal = computed(() => {
   return `¥ ${estimatedTotal.value.toLocaleString()}`
 })
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
   const validation = validateOrder()
   
   if (!validation.valid) {
-    alert(validation.error)
+    submitError.value = validation.error || 'Invalid order'
     return
   }
 
-  emit('submit-order', {
+  const orderData = {
     pair: props.selectedPair,
-    orderType: 'limit',
+    orderType: 'limit' as const,
     price: price.value,
     amount: amount.value,
     estimatedTotal: estimatedTotal.value
-  })
+  }
+
+  // Reset states
+  submitError.value = null
+  submitSuccess.value = false
+  isSubmitting.value = true
+
+  try {
+    // If parent provides onSubmitOrder, use it (for API integration)
+    if (props.onSubmitOrder) {
+      await props.onSubmitOrder(orderData)
+    } else {
+      // Otherwise emit event (for backward compatibility)
+      emit('submit-order', orderData)
+    }
+    
+    submitSuccess.value = true
+    
+    // Clear success message after 3 seconds
+    setTimeout(() => {
+      submitSuccess.value = false
+    }, 3000)
+  } catch (error: any) {
+    console.error('Order submission failed:', error)
+    
+    // Extract error message
+    if (error.data && error.data.message) {
+      submitError.value = error.data.message
+    } else if (error.message) {
+      submitError.value = error.message
+    } else {
+      submitError.value = 'Failed to submit order. Please try again.'
+    }
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
@@ -156,12 +197,14 @@ const handleSubmit = () => {
         <!-- Submit Button -->
         <button
           @click="handleSubmit"
-          :disabled="!isValidOrder"
+          :disabled="!isValidOrder || isSubmitting"
           class="w-full bg-[#137fec] hover:bg-[#1068c4] active:bg-[#0e5aa8] disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-bold py-4 sm:py-3.5 rounded-xl shadow-[0px_10px_15px_-3px_rgba(19,127,236,0.3),0px_4px_6px_-4px_rgba(19,127,236,0.3)] transition-all duration-200 flex items-center justify-center gap-2 touch-manipulation min-h-[52px]"
           aria-label="Place buy order"
         >
-          <span class="text-base sm:text-sm">Place Buy Order</span>
+          <span v-if="!isSubmitting" class="text-base sm:text-sm">Place Buy Order</span>
+          <span v-else class="text-base sm:text-sm">Submitting...</span>
           <svg
+            v-if="!isSubmitting"
             class="w-6 h-6 sm:w-5 sm:h-5"
             fill="none"
             viewBox="0 0 24 24"
@@ -175,11 +218,51 @@ const handleSubmit = () => {
               d="M13 7l5 5m0 0l-5 5m5-5H6"
             />
           </svg>
+          <!-- Loading spinner -->
+          <svg
+            v-else
+            class="animate-spin w-5 h-5"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
         </button>
+
+        <!-- Success Message -->
+        <div
+          v-if="submitSuccess"
+          class="mt-3 bg-green-900/30 border border-green-500/50 rounded-lg p-3 text-green-400 text-sm text-center font-medium"
+          role="alert"
+        >
+          ✓ Order submitted successfully!
+        </div>
+
+        <!-- Error Message -->
+        <div
+          v-if="submitError"
+          class="mt-3 bg-red-900/30 border border-red-500/50 rounded-lg p-3 text-red-400 text-sm text-center font-medium"
+          role="alert"
+        >
+          {{ submitError }}
+        </div>
 
         <!-- Warning if balance insufficient -->
         <div
-          v-if="!isBalanceSufficient && estimatedTotal > 0"
+          v-if="!isBalanceSufficient && estimatedTotal > 0 && !submitError"
           class="mt-3 text-[#fa6238] text-xs text-center font-medium"
           role="alert"
         >

@@ -20,7 +20,8 @@ const {
   availableBalance,
   loading,
   error,
-  fetchAllData
+  fetchAllData,
+  submitOrder
 } = useOrderData(selectedPair)
 
 // Computed values
@@ -69,11 +70,24 @@ watch(selectedTimeFilter, async (newFilter) => {
   }
 })
 
-// Handle order submission
-const handleSubmitOrder = (order: any) => {
-  console.log('Order submitted:', order)
-  // TODO: Implement API call in integration phase
-  alert(`Order placed successfully!\n\nPair: ${order.pair}\nPrice: ¥${order.price.toLocaleString()}\nAmount: ${order.amount}\nTotal: ¥${order.estimatedTotal.toLocaleString()}`)
+// Handle order submission with API
+const handleSubmitOrder = async (order: any) => {
+  try {
+    const result = await submitOrder({
+      pair: order.pair,
+      orderType: order.orderType,
+      price: order.price,
+      amount: order.amount
+    })
+    
+    console.log('Order submitted successfully:', result)
+    
+    // Refresh balance after successful order
+    await fetchAllData(selectedTimeFilter.value)
+  } catch (error) {
+    console.error('Order submission failed:', error)
+    throw error // Re-throw to let OrderForm handle the error display
+  }
 }
 </script>
 
@@ -132,7 +146,7 @@ const handleSubmitOrder = (order: any) => {
         :selected-pair="selectedPair"
         :current-price="currentPrice"
         :available-balance="availableBalance"
-        @submit-order="handleSubmitOrder"
+        :on-submit-order="handleSubmitOrder"
       />
     </div>
 

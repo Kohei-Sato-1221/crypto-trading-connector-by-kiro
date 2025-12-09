@@ -1,49 +1,20 @@
 import { ref, type Ref } from 'vue'
-import type { CryptoData, ChartDataPoint } from '~/types/crypto'
+import type { ChartDataPoint } from '~/types/crypto'
+import type { components } from '~/types/api'
+import { getErrorMessage } from '~/utils/errorHandler'
+
+type Balance = components['schemas']['Balance']
+type CreateOrderRequest = components['schemas']['CreateOrderRequest']
+type Order = components['schemas']['Order']
+type ErrorResponse = components['schemas']['ErrorResponse']
 
 /**
- * Mock data for order page
- */
-const getMockOrderData = (pair: string) => {
-  const isBTC = pair === 'BTC/JPY'
-  
-  return {
-    currentPrice: isBTC ? 14062621 : 485318,
-    priceChange: isBTC ? 2.5 : -1.2,
-    chartData: generateMockChartData(isBTC ? 14000000 : 480000, 7),
-    availableBalance: 1540200
-  }
-}
-
-/**
- * Generate mock chart data
- */
-const generateMockChartData = (basePrice: number, days: number): ChartDataPoint[] => {
-  const data: ChartDataPoint[] = []
-  const now = new Date()
-  
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date(now)
-    date.setDate(date.getDate() - i)
-    
-    // Add some random variation
-    const variation = (Math.random() - 0.5) * 0.1 // ±5% variation
-    const price = basePrice * (1 + variation)
-    
-    data.push({
-      timestamp: date.toISOString(),
-      price: Math.floor(price)
-    })
-  }
-  
-  return data
-}
-
-/**
- * Composable for fetching order page data
- * Currently uses mock data, will be replaced with API calls in integration phase
+ * Composable for fetching order page data from API
  */
 export const useOrderData = (pair: Ref<string>) => {
+  const config = useRuntimeConfig()
+  const apiBaseUrl = config.public.apiBaseUrl || 'http://localhost:8080/api/v1'
+  
   const currentPrice = ref<number>(0)
   const priceChange = ref<number>(0)
   const chartData = ref<ChartDataPoint[]>([])
@@ -52,29 +23,40 @@ export const useOrderData = (pair: Ref<string>) => {
   const error = ref<Error | null>(null)
 
   /**
-   * Fetch price data for selected pair
+   * Convert pair format from BTC/JPY to bitcoin
+   */
+  const pairToId = (pairValue: string): string => {
+    if (pairValue === 'BTC/JPY') return 'bitcoin'
+    if (pairValue === 'ETH/JPY') return 'ethereum'
+    return 'bitcoin'
+  }
+
+  /**
+   * Fetch price data for selected pair from API
    */
   const fetchPriceData = async () => {
     loading.value = true
     error.value = null
 
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 300))
+      const cryptoId = pairToId(pair.value)
+      const response = await $fetch(`${apiBaseUrl}/crypto/${cryptoId}`)
       
-      const mockData = getMockOrderData(pair.value)
-      currentPrice.value = mockData.currentPrice
-      priceChange.value = mockData.priceChange
-    } catch (e) {
-      error.value = e as Error
-      console.error('Failed to fetch price data:', e)
+      if (response && typeof response === 'object' && 'currentPrice' in response) {
+        currentPrice.value = (response as any).currentPrice
+        priceChange.value = (response as any).changePercent || 0
+      }
+    } catch (e: any) {
+      const errorMessage = getErrorMessage(e)
+      error.value = new Error(errorMessage)
+      console.error('Failed to fetch price data:', errorMessage, e)
     } finally {
       loading.value = false
     }
   }
 
   /**
-   * Fetch chart data for selected time filter
+   * Fetch chart data for selected time filter from API
    * 
    * @param timeFilter - Time range filter (1H, 24H, 7D, 30D, 1Y)
    */
@@ -83,39 +65,73 @@ export const useOrderData = (pair: Ref<string>) => {
     error.value = null
 
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 300))
+      const cryptoId = pairToId(pair.value)
+      const period = timeFilterToPeriod(timeFilter)
+      const response = await $fetch(`${apiBaseUrl}/crypto/${cryptoId}/chart?period=${period}`)
       
-      // Convert time filter to days
-      const days = timeFilterToDays(timeFilter)
-      const mockData = getMockOrderData(pair.value)
-      const basePrice = pair.value === 'BTC/JPY' ? 14000000 : 480000
-      
-      chartData.value = generateMockChartData(basePrice, days)
-    } catch (e) {
-      error.value = e as Error
-      console.error('Failed to fetch chart data:', e)
+      if (response && typeof response === 'object' && 'data' in response) {
+        const data = (response as any).data
+        if (Array.isArray(data)) {
+          chartData.value = data.map((item: any) => ({
+            timestamp: item.day || '',
+            price: item.price || 0
+          }))
+        }
+      }
+    } catch (e: any) {
+      const errorMessage = getErrorMessage(e)
+      error.value = new Error(errorMessage)
+      console.error('Failed to fetch chart data:', errorMessage, e)
     } finally {
       loading.value = false
     }
   }
 
   /**
-   * Fetch available balance
+   * Fetch available balance from API
    */
   const fetchBalance = async () => {
     loading.value = true
     error.value = null
 
     try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 200))
+      const response = await $fetch<Balance>(`${apiBaseUrl}/balance`)
       
-      const mockData = getMockOrderData(pair.value)
-      availableBalance.value = mockData.availableBalance
-    } catch (e) {
-      error.value = e as Error
-      console.error('Failed to fetch balance:', e)
+      if (response && 'availableBalance' in response) {
+        availableBalance.value = response.availableBalance
+      }
+    } catch (e: any) {
+      const errorMessage = getErrorMessage(e)
+      error.value = new Error(errorMessage)
+      console.error('Failed to fetch balance:', errorMessage, e)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * Submit order to API
+   */
+  const submitOrder = async (orderData: CreateOrderRequest): Promise<Order | null> => {
+    loading.value = true
+    error.value = null
+
+    try {
+      const response = await $fetch<Order>(`${apiBaseUrl}/orders`, {
+        method: 'POST',
+        body: orderData
+      })
+      
+      return response
+    } catch (e: any) {
+      const errorMessage = getErrorMessage(e)
+      error.value = new Error(errorMessage)
+      console.error('Failed to submit order:', errorMessage, e)
+      
+      // Create a more detailed error for the UI
+      const enhancedError = new Error(errorMessage)
+      ;(enhancedError as any).data = e.data
+      throw enhancedError
     } finally {
       loading.value = false
     }
@@ -133,22 +149,22 @@ export const useOrderData = (pair: Ref<string>) => {
   }
 
   /**
-   * Convert time filter to number of days
+   * Convert time filter to API period format
    */
-  const timeFilterToDays = (filter: string): number => {
+  const timeFilterToPeriod = (filter: string): string => {
     switch (filter) {
       case '1H':
-        return 1
+        return '24h'
       case '24H':
-        return 1
+        return '24h'
       case '7D':
-        return 7
+        return '7d'
       case '30D':
-        return 30
+        return '30d'
       case '1Y':
-        return 365
+        return '1y'
       default:
-        return 7
+        return '7d'
     }
   }
 
@@ -165,6 +181,7 @@ export const useOrderData = (pair: Ref<string>) => {
     fetchPriceData,
     fetchChartData,
     fetchBalance,
-    fetchAllData
+    fetchAllData,
+    submitOrder
   }
 }
