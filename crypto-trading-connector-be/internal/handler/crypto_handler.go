@@ -3,7 +3,7 @@ package handler
 import (
 	"net/http"
 
-	"github.com/crypto-trading-connector/backend/internal/model"
+	"github.com/crypto-trading-connector/backend/internal/generated"
 	"github.com/crypto-trading-connector/backend/internal/service"
 	"github.com/labstack/echo/v4"
 )
@@ -73,7 +73,7 @@ func (h *CryptoHandler) GetChartData(c echo.Context) error {
 
 // handleError is a helper function to return error responses
 func handleError(c echo.Context, statusCode int, errorType string, message string) error {
-	return c.JSON(statusCode, model.ErrorResponse{
+	return c.JSON(statusCode, generated.ErrorResponse{
 		Error:   errorType,
 		Message: message,
 	})

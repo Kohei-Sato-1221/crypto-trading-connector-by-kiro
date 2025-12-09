@@ -233,6 +233,33 @@ npm run test
 npm run test:coverage
 ```
 
+### OpenAPIから型定義生成
+
+OpenAPI仕様書（`../openapi.yaml`）からTypeScriptの型定義を生成します：
+
+```bash
+make generate
+```
+
+生成された型定義は`types/api.ts`に出力されます。
+
+**使用例:**
+
+```typescript
+import type { components } from '~/types/api'
+
+// 生成された型を使用
+type CryptoData = components['schemas']['CryptoData']
+type MarketResponse = components['schemas']['MarketResponse']
+type ChartResponse = components['schemas']['ChartResponse']
+
+// composableで使用
+export const useCryptoData = () => {
+  const cryptoData = ref<CryptoData[]>([])
+  // ...
+}
+```
+
 ## トラブルシューティング
 
 ### APIに接続できない

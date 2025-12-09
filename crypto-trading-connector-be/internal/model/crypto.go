@@ -1,43 +1,7 @@
 package model
 
-// ChartDataPoint represents a single data point in a price chart
-type ChartDataPoint struct {
-	Day   string  `json:"day"`
-	Price float64 `json:"price"`
-}
-
-// CryptoData represents cryptocurrency market data
-type CryptoData struct {
-	ID            string           `json:"id"`
-	Name          string           `json:"name"`
-	Symbol        string           `json:"symbol"`
-	Pair          string           `json:"pair"`
-	Icon          string           `json:"icon"`
-	IconColor     string           `json:"iconColor"`
-	CurrentPrice  float64          `json:"currentPrice"`
-	ChangePercent float64          `json:"changePercent"`
-	ChartData     []ChartDataPoint `json:"chartData"`
-}
-
-// MarketResponse represents the response for market data endpoint
-type MarketResponse struct {
-	Data      []CryptoData `json:"data"`
-	Timestamp int64        `json:"timestamp"`
-}
-
-// ChartResponse represents the response for chart data endpoint
-type ChartResponse struct {
-	Data   []ChartDataPoint `json:"data"`
-	Period string           `json:"period"`
-}
-
-// ErrorResponse represents an error response
-type ErrorResponse struct {
-	Error   string `json:"error"`
-	Message string `json:"message"`
-}
-
 // PriceHistory represents a record from price_histories table
+// This is a database-specific model not defined in OpenAPI
 type PriceHistory struct {
 	ID            int
 	Datetime      string
@@ -47,6 +11,7 @@ type PriceHistory struct {
 }
 
 // TickerResponse represents bitFlyer ticker API response
+// This is a bitFlyer-specific model not defined in OpenAPI
 type TickerResponse struct {
 	ProductCode     string  `json:"product_code"`
 	Timestamp       string  `json:"timestamp"`

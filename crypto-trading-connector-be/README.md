@@ -31,6 +31,8 @@ crypto-trading-connector-be/
 │   └── server/
 │       └── main.go                 # アプリケーションエントリーポイント
 ├── internal/
+│   ├── generated/
+│   │   └── models.go               # OpenAPIから生成されたモデル
 │   ├── handler/
 │   │   └── crypto_handler.go      # HTTPハンドラー
 │   ├── service/
@@ -138,6 +140,26 @@ make e2e-test
 
 ```bash
 make fmt
+```
+
+### OpenAPIからコード生成
+
+OpenAPI仕様書（`../openapi.yaml`）からGoのモデルを生成します：
+
+```bash
+make generate
+```
+
+生成されたコードは`internal/generated/models.go`に出力されます。
+
+**使用例:**
+
+```go
+import "github.com/crypto-trading-connector/backend/internal/generated"
+
+// 生成された型を使用
+var cryptoData generated.CryptoData
+var marketResponse generated.MarketResponse
 ```
 
 ### ビルド

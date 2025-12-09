@@ -110,6 +110,14 @@ curl:
 		exit 1; \
 	fi
 
+## gen: Generate Go code from OpenAPI spec
+gen:
+	@echo "Generating Go code from OpenAPI spec..."
+	@mkdir -p internal/generated
+	@oapi-codegen -package generated -generate types ../openapi.yaml > internal/generated/models.go
+	@echo "Generated: internal/generated/models.go"
+	@go fmt ./internal/generated/...
+
 ## help: Show this help message
 help:
 	@echo "Usage: make [target]"

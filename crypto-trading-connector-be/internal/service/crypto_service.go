@@ -5,15 +5,15 @@ import (
 	"time"
 
 	"github.com/crypto-trading-connector/backend/internal/client"
-	"github.com/crypto-trading-connector/backend/internal/model"
+	"github.com/crypto-trading-connector/backend/internal/generated"
 	"github.com/crypto-trading-connector/backend/internal/repository"
 )
 
 // CryptoService defines the interface for cryptocurrency business logic
 type CryptoService interface {
-	GetMarketData() (*model.MarketResponse, error)
-	GetCryptoByID(id string) (*model.CryptoData, error)
-	GetChartData(id string, period string) (*model.ChartResponse, error)
+	GetMarketData() (*generated.MarketResponse, error)
+	GetCryptoByID(id string) (*generated.CryptoData, error)
+	GetChartData(id string, period string) (*generated.ChartResponse, error)
 }
 
 // CryptoServiceImpl implements CryptoService
@@ -63,8 +63,8 @@ var cryptoConfigs = []cryptoConfig{
 }
 
 // GetMarketData retrieves market data for all cryptocurrencies
-func (s *CryptoServiceImpl) GetMarketData() (*model.MarketResponse, error) {
-	var cryptoDataList []model.CryptoData
+func (s *CryptoServiceImpl) GetMarketData() (*generated.MarketResponse, error) {
+	var cryptoDataList []generated.CryptoData
 
 	for _, config := range cryptoConfigs {
 		// Get current price from bitFlyer API
@@ -82,8 +82,8 @@ func (s *CryptoServiceImpl) GetMarketData() (*model.MarketResponse, error) {
 		// Calculate change percent
 		changePercent := calculateChangePercent(chartData, ticker.Ltp)
 
-		cryptoData := model.CryptoData{
-			ID:            config.ID,
+		cryptoData := generated.CryptoData{
+			Id:            config.ID,
 			Name:          config.Name,
 			Symbol:        config.Symbol,
 			Pair:          config.Pair,
@@ -97,14 +97,14 @@ func (s *CryptoServiceImpl) GetMarketData() (*model.MarketResponse, error) {
 		cryptoDataList = append(cryptoDataList, cryptoData)
 	}
 
-	return &model.MarketResponse{
+	return &generated.MarketResponse{
 		Data:      cryptoDataList,
 		Timestamp: time.Now().Unix(),
 	}, nil
 }
 
 // GetCryptoByID retrieves data for a specific cryptocurrency
-func (s *CryptoServiceImpl) GetCryptoByID(id string) (*model.CryptoData, error) {
+func (s *CryptoServiceImpl) GetCryptoByID(id string) (*generated.CryptoData, error) {
 	// Find config for the requested ID
 	var config *cryptoConfig
 	for _, c := range cryptoConfigs {
@@ -133,8 +133,8 @@ func (s *CryptoServiceImpl) GetCryptoByID(id string) (*model.CryptoData, error) 
 	// Calculate change percent
 	changePercent := calculateChangePercent(chartData, ticker.Ltp)
 
-	return &model.CryptoData{
-		ID:            config.ID,
+	return &generated.CryptoData{
+		Id:            config.ID,
 		Name:          config.Name,
 		Symbol:        config.Symbol,
 		Pair:          config.Pair,
@@ -147,7 +147,7 @@ func (s *CryptoServiceImpl) GetCryptoByID(id string) (*model.CryptoData, error) 
 }
 
 // GetChartData retrieves chart data for a specific cryptocurrency
-func (s *CryptoServiceImpl) GetChartData(id string, period string) (*model.ChartResponse, error) {
+func (s *CryptoServiceImpl) GetChartData(id string, period string) (*generated.ChartResponse, error) {
 	// Find config for the requested ID
 	var config *cryptoConfig
 	for _, c := range cryptoConfigs {
@@ -175,14 +175,14 @@ func (s *CryptoServiceImpl) GetChartData(id string, period string) (*model.Chart
 		return nil, fmt.Errorf("failed to get chart data for %s: %w", config.ProductCode, err)
 	}
 
-	return &model.ChartResponse{
+	return &generated.ChartResponse{
 		Data:   chartData,
-		Period: period,
+		Period: generated.ChartResponsePeriod(period),
 	}, nil
 }
 
 // calculateChangePercent calculates the percentage change from the first chart data point to current price
-func calculateChangePercent(chartData []model.ChartDataPoint, currentPrice float64) float64 {
+func calculateChangePercent(chartData []generated.ChartDataPoint, currentPrice float64) float64 {
 	if len(chartData) == 0 {
 		return 0
 	}

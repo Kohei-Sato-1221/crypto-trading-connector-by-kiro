@@ -82,6 +82,13 @@ clean-cache:
 	@echo "Cleaning Nuxt cache..."
 	rm -rf .nuxt .output
 
+## gen: Generate TypeScript types from OpenAPI spec
+gen:
+	@echo "Generating TypeScript types from OpenAPI spec..."
+	@mkdir -p types
+	@npx openapi-typescript ../openapi.yaml -o types/api.ts
+	@echo "Generated: types/api.ts"
+
 ## help: Show this help message
 help:
 	@echo "Usage: make [target]"
@@ -98,3 +105,4 @@ help:
 	@echo "  make run-mock         # Start dev server with mock data"
 	@echo "  make test             # Run all tests"
 	@echo "  make build            # Build for production"
+	@echo "  make generate         # Generate TypeScript types from OpenAPI"

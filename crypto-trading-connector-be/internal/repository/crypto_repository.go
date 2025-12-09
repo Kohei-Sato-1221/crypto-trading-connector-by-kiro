@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/crypto-trading-connector/backend/internal/model"
+	"github.com/crypto-trading-connector/backend/internal/generated"
 )
 
 // CryptoRepository defines the interface for cryptocurrency data operations
 type CryptoRepository interface {
-	GetDailyAveragePrices(productCode string, days int) ([]model.ChartDataPoint, error)
+	GetDailyAveragePrices(productCode string, days int) ([]generated.ChartDataPoint, error)
 }
 
 // MySQLCryptoRepository implements CryptoRepository with MySQL
@@ -26,7 +26,7 @@ func NewMySQLCryptoRepository(db *sql.DB) *MySQLCryptoRepository {
 }
 
 // GetDailyAveragePrices retrieves daily average prices for the specified product and number of days
-func (r *MySQLCryptoRepository) GetDailyAveragePrices(productCode string, days int) ([]model.ChartDataPoint, error) {
+func (r *MySQLCryptoRepository) GetDailyAveragePrices(productCode string, days int) ([]generated.ChartDataPoint, error) {
 	query := `
 		SELECT 
 			DATE(datetime) as date,
@@ -44,7 +44,7 @@ func (r *MySQLCryptoRepository) GetDailyAveragePrices(productCode string, days i
 	}
 	defer rows.Close()
 
-	var chartData []model.ChartDataPoint
+	var chartData []generated.ChartDataPoint
 	dayNames := []string{"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}
 
 	for rows.Next() {
@@ -58,7 +58,7 @@ func (r *MySQLCryptoRepository) GetDailyAveragePrices(productCode string, days i
 		// Get day name from date
 		dayName := dayNames[date.Weekday()]
 
-		chartData = append(chartData, model.ChartDataPoint{
+		chartData = append(chartData, generated.ChartDataPoint{
 			Day:   dayName,
 			Price: avgPrice,
 		})

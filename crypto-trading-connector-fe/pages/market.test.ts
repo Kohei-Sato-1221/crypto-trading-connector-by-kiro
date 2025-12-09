@@ -1,7 +1,31 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createRouter, createMemoryHistory } from 'vue-router'
+import { ref } from 'vue'
 import MarketPage from './market.vue'
+import { getMockCryptoData } from '~/utils/mockData'
+
+// Mock useCryptoData composable
+vi.mock('~/composables/useCryptoData', () => ({
+  useCryptoData: () => ({
+    cryptoData: ref(getMockCryptoData()),
+    loading: ref(false),
+    error: ref(null),
+    fetchCryptoData: vi.fn(),
+    refresh: vi.fn(),
+    useMockData: true
+  })
+}))
+
+// Mock useAutoRefresh composable
+vi.mock('~/composables/useAutoRefresh', () => ({
+  useAutoRefresh: () => ({
+    start: vi.fn(),
+    stop: vi.fn(),
+    restart: vi.fn(),
+    isActive: ref(false)
+  })
+}))
 
 describe('Market Page - Unit Tests', () => {
   const router = createRouter({
