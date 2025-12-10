@@ -41,6 +41,8 @@ const (
 	INTERNALERROR       ErrorResponseError = "INTERNAL_ERROR"
 	INTERNALSERVERERROR ErrorResponseError = "INTERNAL_SERVER_ERROR"
 	INVALIDAMOUNT       ErrorResponseError = "INVALID_AMOUNT"
+	INVALIDFILTER       ErrorResponseError = "INVALID_FILTER"
+	INVALIDPAGINATION   ErrorResponseError = "INVALID_PAGINATION"
 	INVALIDPRICE        ErrorResponseError = "INVALID_PRICE"
 	INVALIDREQUEST      ErrorResponseError = "INVALID_REQUEST"
 	NOTFOUND            ErrorResponseError = "NOT_FOUND"
@@ -67,6 +69,23 @@ const (
 	Pending   OrderStatus = "pending"
 )
 
+// Defines values for TradeStatisticsPeriod.
+const (
+	TradeStatisticsPeriodAll    TradeStatisticsPeriod = "all"
+	TradeStatisticsPeriodN7days TradeStatisticsPeriod = "7days"
+)
+
+// Defines values for TransactionCryptocurrency.
+const (
+	Bitcoin  TransactionCryptocurrency = "Bitcoin"
+	Ethereum TransactionCryptocurrency = "Ethereum"
+)
+
+// Defines values for TransactionOrderType.
+const (
+	Sell TransactionOrderType = "sell"
+)
+
 // Defines values for GetCryptoChartParamsPeriod.
 const (
 	GetCryptoChartParamsPeriodAll  GetCryptoChartParamsPeriod = "all"
@@ -74,6 +93,32 @@ const (
 	GetCryptoChartParamsPeriodN24h GetCryptoChartParamsPeriod = "24h"
 	GetCryptoChartParamsPeriodN30d GetCryptoChartParamsPeriod = "30d"
 	GetCryptoChartParamsPeriodN7d  GetCryptoChartParamsPeriod = "7d"
+)
+
+// Defines values for GetTradeStatisticsParamsAssetFilter.
+const (
+	GetTradeStatisticsParamsAssetFilterAll GetTradeStatisticsParamsAssetFilter = "all"
+	GetTradeStatisticsParamsAssetFilterBTC GetTradeStatisticsParamsAssetFilter = "BTC"
+	GetTradeStatisticsParamsAssetFilterETH GetTradeStatisticsParamsAssetFilter = "ETH"
+)
+
+// Defines values for GetTradeStatisticsParamsTimeFilter.
+const (
+	GetTradeStatisticsParamsTimeFilterAll    GetTradeStatisticsParamsTimeFilter = "all"
+	GetTradeStatisticsParamsTimeFilterN7days GetTradeStatisticsParamsTimeFilter = "7days"
+)
+
+// Defines values for GetTradeTransactionsParamsAssetFilter.
+const (
+	GetTradeTransactionsParamsAssetFilterAll GetTradeTransactionsParamsAssetFilter = "all"
+	GetTradeTransactionsParamsAssetFilterBTC GetTradeTransactionsParamsAssetFilter = "BTC"
+	GetTradeTransactionsParamsAssetFilterETH GetTradeTransactionsParamsAssetFilter = "ETH"
+)
+
+// Defines values for GetTradeTransactionsParamsTimeFilter.
+const (
+	All    GetTradeTransactionsParamsTimeFilter = "all"
+	N7days GetTradeTransactionsParamsTimeFilter = "7days"
 )
 
 // Balance defines model for Balance.
@@ -226,6 +271,86 @@ type OrderPair string
 // OrderStatus Order status
 type OrderStatus string
 
+// Pagination defines model for Pagination.
+type Pagination struct {
+	// CurrentPage Current page number
+	CurrentPage int `json:"current_page"`
+
+	// HasNext Whether there are more pages available
+	HasNext bool `json:"has_next"`
+
+	// TotalCount Total number of transactions
+	TotalCount int `json:"total_count"`
+
+	// TotalPages Total number of pages
+	TotalPages int `json:"total_pages"`
+}
+
+// TradeStatistics defines model for TradeStatistics.
+type TradeStatistics struct {
+	// ExecutionCount Total number of executed trades
+	ExecutionCount int `json:"execution_count"`
+
+	// Period Time period for the statistics
+	Period TradeStatisticsPeriod `json:"period"`
+
+	// ProfitPercentage Profit percentage (rounded to 1 decimal place)
+	ProfitPercentage float64 `json:"profit_percentage"`
+
+	// TotalProfit Total profit in JPY (rounded to 1 decimal place)
+	TotalProfit float64 `json:"total_profit"`
+}
+
+// TradeStatisticsPeriod Time period for the statistics
+type TradeStatisticsPeriod string
+
+// Transaction defines model for Transaction.
+type Transaction struct {
+	// Amount Amount of cryptocurrency traded
+	Amount float64 `json:"amount"`
+
+	// BuyOrderId Related buy order ID
+	BuyOrderId string `json:"buy_order_id"`
+
+	// BuyPrice Buy price in JPY
+	BuyPrice float64 `json:"buy_price"`
+
+	// Cryptocurrency Cryptocurrency name
+	Cryptocurrency TransactionCryptocurrency `json:"cryptocurrency"`
+
+	// Id Unique transaction identifier
+	Id string `json:"id"`
+
+	// OrderId Sell order ID
+	OrderId string `json:"order_id"`
+
+	// OrderType Order type (always sell for completed trades)
+	OrderType TransactionOrderType `json:"order_type"`
+
+	// Profit Profit amount in JPY (rounded to 1 decimal place)
+	Profit float64 `json:"profit"`
+
+	// SellPrice Sell price in JPY
+	SellPrice float64 `json:"sell_price"`
+
+	// Timestamp Transaction timestamp
+	Timestamp time.Time `json:"timestamp"`
+}
+
+// TransactionCryptocurrency Cryptocurrency name
+type TransactionCryptocurrency string
+
+// TransactionOrderType Order type (always sell for completed trades)
+type TransactionOrderType string
+
+// TransactionLogResponse defines model for TransactionLogResponse.
+type TransactionLogResponse struct {
+	Pagination Pagination `json:"pagination"`
+
+	// Transactions Array of trade transactions
+	Transactions []Transaction `json:"transactions"`
+}
+
 // GetCryptoChartParams defines parameters for GetCryptoChart.
 type GetCryptoChartParams struct {
 	// Period Time period for chart data
@@ -234,6 +359,42 @@ type GetCryptoChartParams struct {
 
 // GetCryptoChartParamsPeriod defines parameters for GetCryptoChart.
 type GetCryptoChartParamsPeriod string
+
+// GetTradeStatisticsParams defines parameters for GetTradeStatistics.
+type GetTradeStatisticsParams struct {
+	// AssetFilter Filter by cryptocurrency asset
+	AssetFilter *GetTradeStatisticsParamsAssetFilter `form:"asset_filter,omitempty" json:"asset_filter,omitempty"`
+
+	// TimeFilter Filter by time period
+	TimeFilter *GetTradeStatisticsParamsTimeFilter `form:"time_filter,omitempty" json:"time_filter,omitempty"`
+}
+
+// GetTradeStatisticsParamsAssetFilter defines parameters for GetTradeStatistics.
+type GetTradeStatisticsParamsAssetFilter string
+
+// GetTradeStatisticsParamsTimeFilter defines parameters for GetTradeStatistics.
+type GetTradeStatisticsParamsTimeFilter string
+
+// GetTradeTransactionsParams defines parameters for GetTradeTransactions.
+type GetTradeTransactionsParams struct {
+	// AssetFilter Filter by cryptocurrency asset
+	AssetFilter *GetTradeTransactionsParamsAssetFilter `form:"asset_filter,omitempty" json:"asset_filter,omitempty"`
+
+	// TimeFilter Filter by time period
+	TimeFilter *GetTradeTransactionsParamsTimeFilter `form:"time_filter,omitempty" json:"time_filter,omitempty"`
+
+	// Page Page number for pagination
+	Page *int `form:"page,omitempty" json:"page,omitempty"`
+
+	// Limit Number of transactions per page
+	Limit *int `form:"limit,omitempty" json:"limit,omitempty"`
+}
+
+// GetTradeTransactionsParamsAssetFilter defines parameters for GetTradeTransactions.
+type GetTradeTransactionsParamsAssetFilter string
+
+// GetTradeTransactionsParamsTimeFilter defines parameters for GetTradeTransactions.
+type GetTradeTransactionsParamsTimeFilter string
 
 // CreateOrderJSONRequestBody defines body for CreateOrder for application/json ContentType.
 type CreateOrderJSONRequestBody = CreateOrderRequest

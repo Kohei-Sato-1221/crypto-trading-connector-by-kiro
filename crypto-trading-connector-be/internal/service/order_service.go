@@ -79,7 +79,7 @@ func (s *OrderServiceImpl) CreateOrder(req *generated.CreateOrderRequest) (*gene
 		Price:       req.Price,
 		Size:        req.Amount,
 		Exchange:    "bitflyer",
-		Filled:      0, // 0: unfilled
+		Status:      "UNFILLED", // UNFILLED status
 		Strategy:    99, // 99: not recorded
 		Remarks:     nil,
 	}

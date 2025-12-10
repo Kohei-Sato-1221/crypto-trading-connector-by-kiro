@@ -31,7 +31,7 @@ func (r *OrderRepositoryImpl) SaveOrder(order *model.BuyOrder) error {
 	query := `
 		INSERT INTO buy_orders (
 			order_id, product_code, side, price, size, 
-			exchange, filled, strategy, remarks, timestamp, updatetime
+			exchange, status, strategy, remarks, timestamp, updatetime
 		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`
 
@@ -44,7 +44,7 @@ func (r *OrderRepositoryImpl) SaveOrder(order *model.BuyOrder) error {
 		order.Price,
 		order.Size,
 		order.Exchange,
-		order.Filled,
+		order.Status,
 		order.Strategy,
 		order.Remarks,
 		now,
@@ -62,7 +62,7 @@ func (r *OrderRepositoryImpl) SaveOrder(order *model.BuyOrder) error {
 func (r *OrderRepositoryImpl) GetOrderByID(orderID string) (*model.BuyOrder, error) {
 	query := `
 		SELECT id, order_id, product_code, side, price, size, 
-		       exchange, filled, strategy, remarks, timestamp, updatetime
+		       exchange, status, strategy, remarks, timestamp, updatetime
 		FROM buy_orders
 		WHERE order_id = ?
 	`
@@ -76,7 +76,7 @@ func (r *OrderRepositoryImpl) GetOrderByID(orderID string) (*model.BuyOrder, err
 		&order.Price,
 		&order.Size,
 		&order.Exchange,
-		&order.Filled,
+		&order.Status,
 		&order.Strategy,
 		&order.Remarks,
 		&order.Timestamp,

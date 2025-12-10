@@ -44,14 +44,17 @@ func main() {
 	// Initialize repositories
 	cryptoRepo := repository.NewMySQLCryptoRepository(db)
 	orderRepo := repository.NewOrderRepository(db)
+	tradeHistoryRepo := repository.NewMySQLTradeHistoryRepository(db)
 
 	// Initialize services
 	cryptoService := service.NewCryptoService(cryptoRepo, exchangeClient)
 	orderService := service.NewOrderService(exchangeClient, orderRepo)
+	tradeHistoryService := service.NewTradeHistoryService(tradeHistoryRepo)
 
 	// Initialize handlers
 	cryptoHandler := handler.NewCryptoHandler(cryptoService)
 	orderHandler := handler.NewOrderHandler(orderService)
+	tradeHistoryHandler := handler.NewTradeHistoryHandler(tradeHistoryService)
 
 	// Initialize Echo
 	e := echo.New()
@@ -81,6 +84,27 @@ func main() {
 		// Order routes
 		api.POST("/orders", orderHandler.CreateOrder)
 		api.GET("/balance", orderHandler.GetBalance)
+
+		// Trade History routes
+		tradeHistory := api.Group("/trade-history")
+		{
+			tradeHistory.GET("/test", func(c echo.Context) error {
+				return c.JSON(200, map[string]string{"message": "Trade history routing works"})
+			})
+			tradeHistory.GET("/statistics", tradeHistoryHandler.GetTradeStatistics)
+			tradeHistory.GET("/transactions", tradeHistoryHandler.GetTradeTransactions)
+		}
+
+		// Debug route to test if routing works
+		api.GET("/debug", func(c echo.Context) error {
+			return c.JSON(200, map[string]string{"message": "Debug endpoint works"})
+		})
+	}
+
+	// Log registered routes
+	log.Println("Registered routes:")
+	for _, route := range e.Routes() {
+		log.Printf("  %s %s", route.Method, route.Path)
 	}
 
 	// Start server on 0.0.0.0 to allow access from other devices

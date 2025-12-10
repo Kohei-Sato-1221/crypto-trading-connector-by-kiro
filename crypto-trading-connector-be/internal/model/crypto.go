@@ -29,18 +29,18 @@ type TickerResponse struct {
 
 // BuyOrder represents a record from buy_orders table
 type BuyOrder struct {
-	ID          int
-	OrderID     string
-	ProductCode string
-	Side        string
-	Price       float64
-	Size        float64
-	Exchange    string
-	Filled      int
-	Strategy    int
-	Remarks     *string
-	Timestamp   string
-	Updatetime  string
+	ID          int     `db:"id"`
+	OrderID     string  `db:"order_id"`
+	ProductCode string  `db:"product_code"`
+	Side        string  `db:"side"`
+	Price       float64 `db:"price"`
+	Size        float64 `db:"size"`
+	Exchange    string  `db:"exchange"`
+	Status      string  `db:"status"`
+	Strategy    int     `db:"strategy"`
+	Remarks     *string `db:"remarks"`
+	Timestamp   string  `db:"timestamp"`
+	Updatetime  string  `db:"updatetime"`
 }
 
 // BitFlyerBalance represents balance response from bitFlyer API

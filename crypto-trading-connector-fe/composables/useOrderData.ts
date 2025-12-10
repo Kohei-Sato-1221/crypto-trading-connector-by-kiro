@@ -12,8 +12,7 @@ type Order = components['schemas']['Order']
  * Uses the same endpoint as market page for consistency (DRY principle)
  */
 export const useOrderData = (pair: Ref<string>) => {
-  const config = useRuntimeConfig()
-  const apiBaseUrl = config.public.apiBaseUrl || 'http://localhost:8080'
+  const { get, post } = useApi()
   
   const currentPrice = ref<number>(0)
   const priceChange = ref<number>(0)
@@ -65,7 +64,7 @@ export const useOrderData = (pair: Ref<string>) => {
     try {
       const cryptoId = pairToId(pair.value)
       const period = timeFilterToPeriod(timeFilter)
-      const response = await $fetch(`${apiBaseUrl}/api/v1/crypto/${cryptoId}?period=${period}`)
+      const response = await get(`/crypto/${cryptoId}`, { period })
       
       if (response && typeof response === 'object') {
         const data = response as any
@@ -100,7 +99,7 @@ export const useOrderData = (pair: Ref<string>) => {
     error.value = null
 
     try {
-      const response = await $fetch<Balance>(`${apiBaseUrl}/api/v1/balance`)
+      const response = await get<Balance>('/balance')
       
       if (response && 'availableBalance' in response) {
         availableBalance.value = response.availableBalance
@@ -122,10 +121,7 @@ export const useOrderData = (pair: Ref<string>) => {
     error.value = null
 
     try {
-      const response = await $fetch<Order>(`${apiBaseUrl}/api/v1/orders`, {
-        method: 'POST',
-        body: orderData
-      })
+      const response = await post<Order>('/orders', orderData)
       
       return response
     } catch (e: any) {
