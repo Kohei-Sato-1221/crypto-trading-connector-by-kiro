@@ -1,7 +1,7 @@
 <template>
-  <div class="grid grid-cols-2 gap-3 px-3 mb-6">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 px-3 mb-6">
     <!-- Total Profit Card -->
-    <div class="bg-[#1a2332] border border-[#2a3441] rounded-lg p-4 shadow-sm">
+    <div class="bg-[#1a2332] border border-[#2a3441] rounded-lg p-4 shadow-sm hover:bg-[#1e2738] transition-colors touch-manipulation">
       <div class="flex items-center mb-2">
         <div class="w-5 h-6 mr-3">
           <svg viewBox="0 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -11,26 +11,36 @@
         <span class="text-white text-sm font-medium">Total Profit</span>
       </div>
       
-      <div class="mb-3">
-        <span class="text-white text-2xl font-bold">
-          {{ formatCurrency(statistics.totalProfit) }}
+      <!-- Error State -->
+      <div v-if="error" class="mb-3">
+        <span class="text-red-400 text-sm">
+          Failed to load
         </span>
       </div>
       
-      <div class="flex items-center">
-        <div class="w-3.5 h-4 mr-2">
-          <svg viewBox="0 0 14 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M7 1L13 6L7 11L1 6L7 1Z" fill="#10b981"/>
-          </svg>
+      <!-- Normal State -->
+      <div v-else>
+        <div class="mb-3">
+          <span class="text-white text-2xl font-bold">
+            {{ formatCurrency(statistics.totalProfit) }}
+          </span>
         </div>
-        <span class="text-[#10b981] text-sm font-medium">
-          +{{ formatPercentage(statistics.profitPercentage) }}%
-        </span>
+        
+        <div class="flex items-center">
+          <div class="w-3.5 h-4 mr-2">
+            <svg viewBox="0 0 14 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 1L13 6L7 11L1 6L7 1Z" fill="#10b981"/>
+            </svg>
+          </div>
+          <span class="text-[#10b981] text-sm font-medium">
+            +{{ formatPercentage(statistics.profitPercentage) }}%
+          </span>
+        </div>
       </div>
     </div>
 
     <!-- Executions Card -->
-    <div class="bg-[#1a2332] border border-[#2a3441] rounded-lg p-4 shadow-sm">
+    <div class="bg-[#1a2332] border border-[#2a3441] rounded-lg p-4 shadow-sm hover:bg-[#1e2738] transition-colors touch-manipulation">
       <div class="flex items-center mb-2">
         <div class="w-5 h-6 mr-3">
           <svg viewBox="0 0 20 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -40,14 +50,24 @@
         <span class="text-white text-sm font-medium">Executions</span>
       </div>
       
-      <div class="mb-3">
-        <span class="text-white text-2xl font-bold">
-          {{ statistics.executionCount }}
+      <!-- Error State -->
+      <div v-if="error" class="mb-3">
+        <span class="text-red-400 text-sm">
+          Failed to load
         </span>
       </div>
       
-      <div>
-        <span class="text-white/60 text-sm">Sell Orders</span>
+      <!-- Normal State -->
+      <div v-else>
+        <div class="mb-3">
+          <span class="text-white text-2xl font-bold">
+            {{ statistics.executionCount }}
+          </span>
+        </div>
+        
+        <div>
+          <span class="text-white/60 text-sm">Sell Orders</span>
+        </div>
       </div>
     </div>
   </div>
@@ -58,6 +78,7 @@ import type { TradeStatisticsUI } from '~/types/tradeHistory'
 
 interface Props {
   statistics: TradeStatisticsUI
+  error?: Error | null
 }
 
 defineProps<Props>()

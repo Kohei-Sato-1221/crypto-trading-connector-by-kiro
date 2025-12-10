@@ -1,5 +1,5 @@
 <template>
-  <div class="px-3">
+  <div class="px-3 max-w-4xl mx-auto">
     <!-- Header -->
     <div class="flex items-center justify-between mb-4">
       <h3 class="text-white text-xl font-semibold">Transaction Log</h3>
@@ -15,10 +15,10 @@
       <div
         v-for="transaction in transactions"
         :key="transaction.id"
-        class="bg-[#1a2332] border border-[#2a3441] rounded-lg p-4 shadow-sm"
+        class="bg-[#1a2332] border border-[#2a3441] rounded-lg p-4 shadow-sm hover:bg-[#1e2738] transition-colors touch-manipulation"
       >
         <!-- Transaction Header -->
-        <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center justify-between mb-4 flex-wrap sm:flex-nowrap gap-2">
           <div class="flex items-center">
             <div class="w-10 h-10 rounded-lg bg-[#2a3441] flex items-center justify-center mr-3">
               <div class="w-6 h-7">
@@ -50,27 +50,27 @@
         <div class="h-px bg-[#2a3441] mb-4"></div>
 
         <!-- Transaction Details -->
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <div class="text-white/60 text-xs mb-1">Amount</div>
             <div class="text-white text-sm font-medium">
               {{ formatAmount(transaction.amount, transaction.cryptocurrency) }}
             </div>
           </div>
-          <div class="text-right">
+          <div class="sm:text-right">
             <div class="text-white/60 text-xs mb-1">Order ID</div>
             <div class="text-white text-xs">{{ transaction.orderId }}</div>
           </div>
         </div>
 
-        <div class="grid grid-cols-2 gap-4 mt-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
           <div>
             <div class="text-white/60 text-xs mb-1">Buy Price</div>
             <div class="text-white text-sm font-medium">
               {{ formatCurrency(transaction.buyPrice) }}
             </div>
           </div>
-          <div class="text-right">
+          <div class="sm:text-right">
             <div class="text-white/60 text-xs mb-1">Sell Price</div>
             <div class="text-white text-sm font-medium">
               {{ formatCurrency(transaction.sellPrice) }}
@@ -84,14 +84,25 @@
     <div v-if="canLoadMore" class="mt-6">
       <button
         @click="$emit('loadMore')"
-        class="w-full py-3 text-white/80 text-sm font-medium hover:text-white transition-colors"
+        class="w-full py-3 text-white/80 text-sm font-medium hover:text-white active:text-white/60 transition-colors touch-manipulation"
       >
         View Older Transactions
       </button>
     </div>
 
+    <!-- Error State -->
+    <div v-if="error" class="text-center py-8">
+      <div class="text-red-400 text-sm mb-4">{{ error.message }}</div>
+      <button
+        @click="$emit('loadMore')"
+        class="px-4 py-2 bg-[#2a3441] text-white rounded-lg hover:bg-[#3a4451] active:bg-[#3a4451]/70 transition-colors touch-manipulation"
+      >
+        Retry
+      </button>
+    </div>
+
     <!-- Empty State -->
-    <div v-if="transactions.length === 0" class="text-center py-8">
+    <div v-else-if="transactions.length === 0" class="text-center py-8">
       <div class="text-white/60 text-sm">No transactions found</div>
     </div>
   </div>
@@ -103,6 +114,7 @@ import type { TransactionUI } from '~/types/tradeHistory'
 interface Props {
   transactions: TransactionUI[]
   canLoadMore: boolean
+  error?: Error | null
 }
 
 interface Emits {

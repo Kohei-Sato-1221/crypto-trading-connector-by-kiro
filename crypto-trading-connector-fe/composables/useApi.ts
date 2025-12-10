@@ -1,18 +1,31 @@
 /**
  * API client composable for making HTTP requests to the backend
+ * Provides a unified interface for all API calls with consistent URL construction
  */
 export const useApi = () => {
   const config = useRuntimeConfig()
   const baseURL = config.public.apiBaseUrl
 
   /**
+   * Build full API URL with consistent /api/v1 prefix
+   */
+  const buildApiUrl = (endpoint: string): string => {
+    // Ensure endpoint starts with /
+    const normalizedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`
+    return `${baseURL}/api/v1${normalizedEndpoint}`
+  }
+
+  /**
    * Generic API request function with error handling
+   * 200-299: Success (including empty responses)
+   * 400-499: Client errors (throw error)
+   * 500-599: Server errors (throw error)
    */
   const apiRequest = async <T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> => {
-    const url = `${baseURL}${endpoint}`
+    const url = buildApiUrl(endpoint)
     
     try {
       const response = await fetch(url, {
@@ -23,6 +36,7 @@ export const useApi = () => {
         ...options,
       })
 
+      // Only throw errors for 4xx and 5xx status codes
       if (!response.ok) {
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`
         
@@ -38,7 +52,16 @@ export const useApi = () => {
         throw new Error(errorMessage)
       }
 
-      return await response.json()
+      // Handle successful responses (200-299)
+      try {
+        const data = await response.json()
+        return data
+      } catch (jsonError) {
+        // If JSON parsing fails but status is 2xx, return null/empty object
+        // This handles cases where the server returns empty responses
+        console.warn('Empty or invalid JSON response, returning null:', jsonError)
+        return null as T
+      }
     } catch (error) {
       if (error instanceof Error) {
         throw error
@@ -74,9 +97,18 @@ export const useApi = () => {
     })
   }
 
+  /**
+   * Build API URL (for external use if needed)
+   */
+  const getApiUrl = (endpoint: string): string => {
+    return buildApiUrl(endpoint)
+  }
+
   return {
     get,
     post,
     apiRequest,
+    getApiUrl,
+    baseURL
   }
 }

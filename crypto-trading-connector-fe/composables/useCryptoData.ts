@@ -16,10 +16,10 @@ export const useCryptoData = () => {
   const loading = ref(false)
   const error = ref<Error | null>(null)
   const config = useRuntimeConfig()
+  const { get } = useApi()
 
   // Use mock data if USE_MOCK_DATA is true, otherwise use API
   const useMockData = config.public.useMockData ?? false
-  const apiBaseUrl = config.public.apiBaseUrl ?? 'http://localhost:8080'
 
   // Crypto IDs to fetch
   const cryptoIds = ['bitcoin', 'ethereum']
@@ -29,9 +29,7 @@ export const useCryptoData = () => {
    */
   const fetchSingleCrypto = async (id: string): Promise<CryptoDataWithError> => {
     try {
-      const response = await $fetch<CryptoData>(
-        `${apiBaseUrl}/api/v1/crypto/${id}`
-      )
+      const response = await get<CryptoData>(`/crypto/${id}`)
       return { ...response, hasError: false }
     } catch (e) {
       console.error(`Failed to fetch ${id} data from API:`, e)

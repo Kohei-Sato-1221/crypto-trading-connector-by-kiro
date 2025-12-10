@@ -15,6 +15,11 @@ export const useTradeHistory = () => {
   const transactions = ref<TransactionUI[]>([])
   const loading = ref(false)
   const error = ref<Error | null>(null)
+  
+  // Individual component error states
+  const statisticsError = ref<Error | null>(null)
+  const transactionsError = ref<Error | null>(null)
+  
   const hasMore = ref(true)
   const currentPage = ref(1)
   const pageSize = 10
@@ -44,12 +49,13 @@ export const useTradeHistory = () => {
         filters.value.assetFilter,
         filters.value.timeFilter
       )
+      statisticsError.value = null
       return
     }
 
     try {
       loading.value = true
-      error.value = null
+      statisticsError.value = null
       
       const stats = await fetchTradeStatistics(
         filters.value.assetFilter,
@@ -57,7 +63,7 @@ export const useTradeHistory = () => {
       )
       statistics.value = stats
     } catch (e) {
-      error.value = e as Error
+      statisticsError.value = e as Error
       console.error('Failed to fetch statistics:', e)
     } finally {
       loading.value = false
@@ -85,7 +91,7 @@ export const useTradeHistory = () => {
 
     try {
       loading.value = true
-      error.value = null
+      transactionsError.value = null
 
       const page = reset ? 1 : currentPage.value + 1
       
@@ -108,7 +114,7 @@ export const useTradeHistory = () => {
       totalTransactions.value = response.total
 
     } catch (e) {
-      error.value = e as Error
+      transactionsError.value = e as Error
       console.error('Failed to fetch transactions:', e)
     } finally {
       loading.value = false
@@ -169,6 +175,11 @@ export const useTradeHistory = () => {
     transactions: readonly(transactions),
     loading: readonly(loading),
     error: readonly(error),
+    
+    // Individual component errors
+    statisticsError: readonly(statisticsError),
+    transactionsError: readonly(transactionsError),
+    
     filters: readonly(filters),
     canLoadMore,
     totalTransactions: readonly(totalTransactions),

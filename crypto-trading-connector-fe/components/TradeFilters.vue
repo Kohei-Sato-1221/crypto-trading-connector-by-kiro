@@ -1,15 +1,15 @@
 <template>
-  <div class="px-3 mb-6">
+  <div class="px-3 mb-6 max-w-4xl mx-auto">
     <!-- Time Filter -->
     <div class="bg-[#1a2332] rounded-lg p-3 mb-4">
-      <div class="flex justify-center space-x-4">
+      <div class="flex justify-center space-x-2 sm:space-x-4">
         <button
           @click="$emit('timeFilterChange', 'all')"
           :class="[
-            'px-6 py-2 text-sm font-medium rounded-md transition-colors',
+            'px-4 sm:px-6 py-2 text-sm font-medium rounded-md transition-colors touch-manipulation',
             timeFilter === 'all'
               ? 'text-white bg-[#2a3441]'
-              : 'text-white/60 hover:text-white hover:bg-[#2a3441]/50'
+              : 'text-white/60 hover:text-white hover:bg-[#2a3441]/50 active:bg-[#2a3441]/70'
           ]"
         >
           All Time
@@ -17,10 +17,10 @@
         <button
           @click="$emit('timeFilterChange', '7days')"
           :class="[
-            'px-6 py-2 text-sm font-medium rounded-md transition-colors',
+            'px-4 sm:px-6 py-2 text-sm font-medium rounded-md transition-colors touch-manipulation',
             timeFilter === '7days'
               ? 'text-white bg-[#2a3441]'
-              : 'text-white/60 hover:text-white hover:bg-[#2a3441]/50'
+              : 'text-white/60 hover:text-white hover:bg-[#2a3441]/50 active:bg-[#2a3441]/70'
           ]"
         >
           Last 7 Days
@@ -29,14 +29,14 @@
     </div>
 
     <!-- Asset Filter -->
-    <div class="flex space-x-2 overflow-x-auto pb-2">
+    <div class="flex space-x-2 overflow-x-auto pb-2 scrollbar-hide">
       <button
         @click="$emit('assetFilterChange', 'all')"
         :class="[
-          'flex-shrink-0 px-4 py-2 text-sm font-medium rounded-lg transition-colors',
+          'flex-shrink-0 px-4 py-2 text-sm font-medium rounded-lg transition-colors touch-manipulation',
           assetFilter === 'all'
             ? 'text-white bg-[#2a3441]'
-            : 'text-white/60 hover:text-white hover:bg-[#2a3441]/50'
+            : 'text-white/60 hover:text-white hover:bg-[#2a3441]/50 active:bg-[#2a3441]/70'
         ]"
       >
         All Assets
@@ -45,10 +45,10 @@
       <button
         @click="$emit('assetFilterChange', 'BTC')"
         :class="[
-          'flex-shrink-0 flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors',
+          'flex-shrink-0 flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors touch-manipulation',
           assetFilter === 'BTC'
             ? 'text-white bg-[#2a3441]'
-            : 'text-white/60 hover:text-white hover:bg-[#2a3441]/50'
+            : 'text-white/60 hover:text-white hover:bg-[#2a3441]/50 active:bg-[#2a3441]/70'
         ]"
       >
         <div class="w-4 h-5 mr-2">
@@ -63,10 +63,10 @@
       <button
         @click="$emit('assetFilterChange', 'ETH')"
         :class="[
-          'flex-shrink-0 flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors',
+          'flex-shrink-0 flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-colors touch-manipulation',
           assetFilter === 'ETH'
             ? 'text-white bg-[#2a3441]'
-            : 'text-white/60 hover:text-white hover:bg-[#2a3441]/50'
+            : 'text-white/60 hover:text-white hover:bg-[#2a3441]/50 active:bg-[#2a3441]/70'
         ]"
       >
         <div class="w-4 h-5 mr-2">

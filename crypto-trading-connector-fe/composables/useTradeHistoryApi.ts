@@ -16,13 +16,23 @@ export const useTradeHistoryApi = () => {
 
   /**
    * Convert API statistics response to UI format
+   * Handles null/undefined values gracefully
    */
-  const convertStatisticsToUI = (apiStats: TradeStatistics): TradeStatisticsUI => {
+  const convertStatisticsToUI = (apiStats: TradeStatistics | null): TradeStatisticsUI => {
+    if (!apiStats) {
+      return {
+        totalProfit: 0,
+        profitPercentage: 0,
+        executionCount: 0,
+        period: 'all'
+      }
+    }
+
     return {
-      totalProfit: apiStats.total_profit,
-      profitPercentage: apiStats.profit_percentage,
-      executionCount: apiStats.execution_count,
-      period: apiStats.period
+      totalProfit: apiStats.total_profit ?? 0,
+      profitPercentage: apiStats.profit_percentage ?? 0,
+      executionCount: apiStats.execution_count ?? 0,
+      period: apiStats.period ?? 'all'
     }
   }
 
@@ -46,33 +56,52 @@ export const useTradeHistoryApi = () => {
 
   /**
    * Convert API transaction log response to UI format
+   * Handles null/undefined values gracefully
    */
-  const convertTransactionLogToUI = (apiResponse: TransactionLogResponse): TransactionLogResponseUI => {
+  const convertTransactionLogToUI = (apiResponse: TransactionLogResponse | null): TransactionLogResponseUI => {
+    if (!apiResponse) {
+      return {
+        transactions: [],
+        hasMore: false,
+        total: 0
+      }
+    }
+
+    // Handle null transactions array
+    const transactions = apiResponse.transactions || []
+    
     return {
-      transactions: apiResponse.transactions.map(convertTransactionToUI),
-      hasMore: apiResponse.pagination.has_next,
-      total: apiResponse.pagination.total_count
+      transactions: transactions.map(convertTransactionToUI),
+      hasMore: apiResponse.pagination?.has_next ?? false,
+      total: apiResponse.pagination?.total_count ?? 0
     }
   }
 
   /**
    * Fetch trade statistics from API
+   * Returns default values for empty/null responses (200 status)
    */
   const fetchTradeStatistics = async (
     assetFilter: 'all' | 'BTC' | 'ETH' = 'all',
     timeFilter: 'all' | '7days' = 'all'
   ): Promise<TradeStatisticsUI> => {
-    const params: ApiRequestParams = {
+    const params = {
       asset_filter: assetFilter,
       time_filter: timeFilter
     }
 
-    const response = await get<TradeStatistics>('/trade-history/statistics', params)
-    return convertStatisticsToUI(response)
+    try {
+      const response = await get<TradeStatistics>('/trade-history/statistics', params)
+      return convertStatisticsToUI(response)
+    } catch (error) {
+      // Re-throw 4xx/5xx errors, but handle empty responses gracefully
+      throw error
+    }
   }
 
   /**
    * Fetch trade transactions from API
+   * Returns empty array for empty/null responses (200 status)
    */
   const fetchTradeTransactions = async (
     assetFilter: 'all' | 'BTC' | 'ETH' = 'all',
@@ -80,15 +109,20 @@ export const useTradeHistoryApi = () => {
     page: number = 1,
     limit: number = 10
   ): Promise<TransactionLogResponseUI> => {
-    const params: ApiRequestParams = {
+    const params = {
       asset_filter: assetFilter,
       time_filter: timeFilter,
       page,
       limit
     }
 
-    const response = await get<TransactionLogResponse>('/trade-history/transactions', params)
-    return convertTransactionLogToUI(response)
+    try {
+      const response = await get<TransactionLogResponse>('/trade-history/transactions', params)
+      return convertTransactionLogToUI(response)
+    } catch (error) {
+      // Re-throw 4xx/5xx errors, but handle empty responses gracefully
+      throw error
+    }
   }
 
   return {

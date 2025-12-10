@@ -23,8 +23,8 @@ export default defineNuxtConfig({
     public: {
       // Use mock data by default in development, set to false to use API
       useMockData: process.env.USE_MOCK_DATA === 'true',
-      // Backend API base URL (includes /api/v1 prefix)
-      apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:8080/api/v1'
+      // Backend API base URL (without /api/v1 prefix - added in composables)
+      apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:8080'
     }
   }
 })

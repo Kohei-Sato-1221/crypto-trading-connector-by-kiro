@@ -1,0 +1,60 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug Backend Server",
+      "type": "go",
+      "request": "launch",
+      "program": "${workspaceFolder}/crypto-trading-connector-be/cmd/server",
+      "cwd": "${workspaceFolder}/crypto-trading-connector-be",
+      "envFile": "${workspaceFolder}/crypto-trading-connector-be/.env",
+      "env": {},
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Debug Frontend Dev Server",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/crypto-trading-connector-fe/node_modules/.bin/nuxt",
+      "args": ["dev"],
+      "cwd": "${workspaceFolder}/crypto-trading-connector-fe",
+      "envFile": "${workspaceFolder}/crypto-trading-connector-fe/.env",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Debug Backend Tests",
+      "type": "go",
+      "request": "launch",
+      "program": "${workspaceFolder}/crypto-trading-connector-be",
+      "args": ["-test.v"],
+      "cwd": "${workspaceFolder}/crypto-trading-connector-be",
+      "envFile": "${workspaceFolder}/crypto-trading-connector-be/.env",
+      "console": "integratedTerminal"
+    },
+    {
+      "name": "Debug Frontend Tests",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/crypto-trading-connector-fe/node_modules/.bin/vitest",
+      "args": ["--run"],
+      "cwd": "${workspaceFolder}/crypto-trading-connector-fe",
+      "envFile": "${workspaceFolder}/crypto-trading-connector-fe/.env",
+      "console": "integratedTerminal",
+      "skipFiles": ["<node_internals>/**"]
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug Full Stack",
+      "configurations": [
+        "Debug Backend Server",
+        "Debug Frontend Dev Server"
+      ],
+      "stopAll": true
+    }
+  ]
+}
