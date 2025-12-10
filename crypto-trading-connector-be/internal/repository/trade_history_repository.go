@@ -30,41 +30,44 @@ func NewMySQLTradeHistoryRepository(db *sql.DB) *MySQLTradeHistoryRepository {
 
 // GetTradeStatistics retrieves aggregated trade statistics
 func (r *MySQLTradeHistoryRepository) GetTradeStatistics(assetFilter, timeFilter string) (*generated.TradeStatistics, error) {
-	query := `
+	// Base query for calculating profit with fee consideration (0.9989)
+	baseQuery := `
 		SELECT 
 			COUNT(*) as execution_count,
-			COALESCE(SUM((s.price - b.price) * s.size), 0) as total_profit
+			COALESCE(ROUND(SUM(((s.price * s.size) - (b.price * b.size)) * 0.9989), 2), 0) as total_profit
 		FROM sell_orders s
 		INNER JOIN buy_orders b ON s.parentid = b.order_id
-		WHERE s.status = 'FILLED' AND b.status = 'FILLED'
+		WHERE s.status = 'FILLED'
 	`
-	
-	args := []interface{}{}
-	
+
+	args := []any{}
+
 	// Add asset filter
 	if assetFilter != "all" {
 		productCode := getProductCodeFromAsset(assetFilter)
-		query += " AND s.product_code = ?"
+		baseQuery += " AND s.product_code = ?"
 		args = append(args, productCode)
 	}
-	
+
 	// Add time filter
 	if timeFilter == "7days" {
-		query += " AND s.timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
+		baseQuery += " AND s.updatetime >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
 	}
 
 	var executionCount int
 	var totalProfit float64
-	
-	err := r.db.QueryRow(query, args...).Scan(&executionCount, &totalProfit)
+
+	err := r.db.QueryRow(baseQuery, args...).Scan(&executionCount, &totalProfit)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get trade statistics: %w", err)
 	}
 
-	// Calculate profit percentage (mock calculation based on total profit)
+	// Calculate profit percentage based on average profit per trade
 	profitPercentage := 0.0
-	if totalProfit > 0 {
-		profitPercentage = (totalProfit / 10000000) * 100 // Assuming 10M JPY base
+	if executionCount > 0 && totalProfit != 0 {
+		avgProfitPerTrade := totalProfit / float64(executionCount)
+		// Calculate percentage based on average trade size (assuming ~100,000 JPY per trade)
+		profitPercentage = (avgProfitPerTrade / 100000) * 100
 	}
 
 	period := generated.TradeStatisticsPeriodAll
@@ -83,7 +86,7 @@ func (r *MySQLTradeHistoryRepository) GetTradeStatistics(assetFilter, timeFilter
 // GetTradeTransactions retrieves paginated trade transactions
 func (r *MySQLTradeHistoryRepository) GetTradeTransactions(assetFilter, timeFilter string, page, limit int) (*generated.TransactionLogResponse, error) {
 	offset := (page - 1) * limit
-	
+
 	query := `
 		SELECT 
 			s.id,
@@ -93,28 +96,28 @@ func (r *MySQLTradeHistoryRepository) GetTradeTransactions(assetFilter, timeFilt
 			s.price as sell_price,
 			b.price as buy_price,
 			s.size,
-			s.timestamp,
-			(s.price - b.price) * s.size as profit
+			s.updatetime,
+			ROUND(((s.price * s.size) - (b.price * b.size)) * 0.9989, 2) as profit
 		FROM sell_orders s
 		INNER JOIN buy_orders b ON s.parentid = b.order_id
-		WHERE s.status = 'FILLED' AND b.status = 'FILLED'
+		WHERE s.status = 'FILLED'
 	`
-	
-	args := []interface{}{}
-	
+
+	args := []any{}
+
 	// Add asset filter
 	if assetFilter != "all" {
 		productCode := getProductCodeFromAsset(assetFilter)
 		query += " AND s.product_code = ?"
 		args = append(args, productCode)
 	}
-	
+
 	// Add time filter
 	if timeFilter == "7days" {
-		query += " AND s.timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
+		query += " AND s.updatetime >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
 	}
-	
-	query += " ORDER BY s.timestamp DESC LIMIT ? OFFSET ?"
+
+	query += " ORDER BY s.updatetime DESC LIMIT ? OFFSET ?"
 	args = append(args, limit, offset)
 
 	rows, err := r.db.Query(query, args...)
@@ -124,7 +127,7 @@ func (r *MySQLTradeHistoryRepository) GetTradeTransactions(assetFilter, timeFilt
 	defer rows.Close()
 
 	var transactions []generated.Transaction
-	
+
 	for rows.Next() {
 		var (
 			id          string
@@ -137,13 +140,13 @@ func (r *MySQLTradeHistoryRepository) GetTradeTransactions(assetFilter, timeFilt
 			timestamp   time.Time
 			profit      float64
 		)
-		
+
 		if err := rows.Scan(&id, &sellOrderID, &buyOrderID, &productCode, &sellPrice, &buyPrice, &size, &timestamp, &profit); err != nil {
 			return nil, fmt.Errorf("failed to scan transaction row: %w", err)
 		}
 
 		cryptocurrency := getCryptocurrencyFromProductCode(productCode)
-		
+
 		transaction := generated.Transaction{
 			Id:             id,
 			Cryptocurrency: cryptocurrency,
@@ -156,7 +159,7 @@ func (r *MySQLTradeHistoryRepository) GetTradeTransactions(assetFilter, timeFilt
 			Amount:         size,
 			BuyOrderId:     buyOrderID,
 		}
-		
+
 		transactions = append(transactions, transaction)
 	}
 
@@ -192,21 +195,21 @@ func (r *MySQLTradeHistoryRepository) GetTotalTransactionCount(assetFilter, time
 		SELECT COUNT(*)
 		FROM sell_orders s
 		INNER JOIN buy_orders b ON s.parentid = b.order_id
-		WHERE s.status = 'FILLED' AND b.status = 'FILLED'
+		WHERE s.status = 'FILLED'
 	`
-	
-	args := []interface{}{}
-	
+
+	args := []any{}
+
 	// Add asset filter
 	if assetFilter != "all" {
 		productCode := getProductCodeFromAsset(assetFilter)
 		query += " AND s.product_code = ?"
 		args = append(args, productCode)
 	}
-	
+
 	// Add time filter
 	if timeFilter == "7days" {
-		query += " AND s.timestamp >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
+		query += " AND s.updatetime >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
 	}
 
 	var count int
