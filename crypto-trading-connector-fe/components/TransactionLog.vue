@@ -98,10 +98,10 @@
 </template>
 
 <script setup lang="ts">
-import type { Transaction } from '~/types/tradeHistory'
+import type { TransactionUI } from '~/types/tradeHistory'
 
 interface Props {
-  transactions: Transaction[]
+  transactions: TransactionUI[]
   canLoadMore: boolean
 }
 

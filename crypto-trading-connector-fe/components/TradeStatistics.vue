@@ -54,10 +54,10 @@
 </template>
 
 <script setup lang="ts">
-import type { TradeStatistics } from '~/types/tradeHistory'
+import type { TradeStatisticsUI } from '~/types/tradeHistory'
 
 interface Props {
-  statistics: TradeStatistics
+  statistics: TradeStatisticsUI
 }
 
 defineProps<Props>()

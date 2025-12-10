@@ -1,19 +1,24 @@
 import { ref, computed } from 'vue'
-import type { TradeStatistics, Transaction, FilterState, TransactionLogResponse } from '~/types/tradeHistory'
+import type { TradeStatisticsUI, TransactionUI, FilterState } from '~/types/tradeHistory'
 import { getMockTradeStatistics, getFilteredTransactions, calculateFilteredStatistics } from '~/utils/tradeHistoryMockData'
 
 /**
  * Composable for managing trade history data
  */
 export const useTradeHistory = () => {
+  const config = useRuntimeConfig()
+  const useMockData = config.public.useMockData
+  const { fetchTradeStatistics, fetchTradeTransactions } = useTradeHistoryApi()
+
   // State
-  const statistics = ref<TradeStatistics>(getMockTradeStatistics())
-  const transactions = ref<Transaction[]>([])
+  const statistics = ref<TradeStatisticsUI>(getMockTradeStatistics())
+  const transactions = ref<TransactionUI[]>([])
   const loading = ref(false)
   const error = ref<Error | null>(null)
   const hasMore = ref(true)
   const currentPage = ref(1)
   const pageSize = 10
+  const totalTransactions = ref(0)
 
   // Filter state
   const filters = ref<FilterState>({
@@ -22,53 +27,122 @@ export const useTradeHistory = () => {
   })
 
   // Computed
-  const filteredTransactions = computed(() => {
-    return getFilteredTransactions(filters.value.assetFilter, filters.value.timeFilter)
-  })
-
-  const displayedTransactions = computed(() => {
-    const allFiltered = filteredTransactions.value
-    return allFiltered.slice(0, currentPage.value * pageSize)
-  })
-
   const canLoadMore = computed(() => {
-    return displayedTransactions.value.length < filteredTransactions.value.length
+    if (useMockData) {
+      const allFiltered = getFilteredTransactions(filters.value.assetFilter, filters.value.timeFilter)
+      return transactions.value.length < allFiltered.length
+    }
+    return hasMore.value
   })
 
   /**
    * Update statistics based on current filters
    */
-  const updateStatistics = () => {
-    statistics.value = calculateFilteredStatistics(
-      filters.value.assetFilter,
-      filters.value.timeFilter
-    )
+  const updateStatistics = async () => {
+    if (useMockData) {
+      statistics.value = calculateFilteredStatistics(
+        filters.value.assetFilter,
+        filters.value.timeFilter
+      )
+      return
+    }
+
+    try {
+      loading.value = true
+      error.value = null
+      
+      const stats = await fetchTradeStatistics(
+        filters.value.assetFilter,
+        filters.value.timeFilter
+      )
+      statistics.value = stats
+    } catch (e) {
+      error.value = e as Error
+      console.error('Failed to fetch statistics:', e)
+    } finally {
+      loading.value = false
+    }
+  }
+
+  /**
+   * Load transactions based on current filters and pagination
+   */
+  const loadTransactions = async (reset: boolean = false) => {
+    if (useMockData) {
+      const allFiltered = getFilteredTransactions(filters.value.assetFilter, filters.value.timeFilter)
+      if (reset) {
+        transactions.value = allFiltered.slice(0, pageSize)
+        currentPage.value = 1
+      } else {
+        const startIndex = currentPage.value * pageSize
+        const endIndex = startIndex + pageSize
+        const newTransactions = allFiltered.slice(startIndex, endIndex)
+        transactions.value = [...transactions.value, ...newTransactions]
+        currentPage.value++
+      }
+      return
+    }
+
+    try {
+      loading.value = true
+      error.value = null
+
+      const page = reset ? 1 : currentPage.value + 1
+      
+      const response = await fetchTradeTransactions(
+        filters.value.assetFilter,
+        filters.value.timeFilter,
+        page,
+        pageSize
+      )
+
+      if (reset) {
+        transactions.value = response.transactions
+        currentPage.value = 1
+      } else {
+        transactions.value = [...transactions.value, ...response.transactions]
+        currentPage.value = page
+      }
+
+      hasMore.value = response.hasMore
+      totalTransactions.value = response.total
+
+    } catch (e) {
+      error.value = e as Error
+      console.error('Failed to fetch transactions:', e)
+    } finally {
+      loading.value = false
+    }
   }
 
   /**
    * Set time filter
    */
-  const setTimeFilter = (timeFilter: 'all' | '7days') => {
+  const setTimeFilter = async (timeFilter: 'all' | '7days') => {
     filters.value.timeFilter = timeFilter
-    currentPage.value = 1
-    updateStatistics()
+    await Promise.all([
+      updateStatistics(),
+      loadTransactions(true) // Reset transactions
+    ])
   }
 
   /**
    * Set asset filter
    */
-  const setAssetFilter = (assetFilter: 'all' | 'BTC' | 'ETH') => {
+  const setAssetFilter = async (assetFilter: 'all' | 'BTC' | 'ETH') => {
     filters.value.assetFilter = assetFilter
-    currentPage.value = 1
-    updateStatistics()
+    await Promise.all([
+      updateStatistics(),
+      loadTransactions(true) // Reset transactions
+    ])
   }
 
   /**
    * Load more transactions (pagination)
    */
-  const loadMoreTransactions = () => {
-    if (canLoadMore.value) {
-      currentPage.value++
+  const loadMoreTransactions = async () => {
+    if (canLoadMore.value && !loading.value) {
+      await loadTransactions(false) // Append transactions
     }
   }
 
@@ -76,24 +150,10 @@ export const useTradeHistory = () => {
    * Refresh all data
    */
   const refresh = async () => {
-    loading.value = true
-    error.value = null
-
-    try {
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // Reset pagination
-      currentPage.value = 1
-      
-      // Update statistics
-      updateStatistics()
-      
-    } catch (e) {
-      error.value = e as Error
-    } finally {
-      loading.value = false
-    }
+    await Promise.all([
+      updateStatistics(),
+      loadTransactions(true) // Reset transactions
+    ])
   }
 
   /**
@@ -106,11 +166,12 @@ export const useTradeHistory = () => {
   return {
     // State
     statistics: readonly(statistics),
-    transactions: displayedTransactions,
+    transactions: readonly(transactions),
     loading: readonly(loading),
     error: readonly(error),
     filters: readonly(filters),
     canLoadMore,
+    totalTransactions: readonly(totalTransactions),
 
     // Actions
     setTimeFilter,
