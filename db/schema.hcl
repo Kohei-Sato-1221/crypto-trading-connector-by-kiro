@@ -44,11 +44,11 @@ table "buy_orders" {
     null = true
   }
 
-  column "filled" {
-    type = tinyint
-    null = false
-    default = 0
-    comment = "0:unfilled / 1:filled"
+  column "status" {
+    type = varchar(100)
+    null = true
+    default = "UNFILLED"
+    comment = "UNFILLED / FILLED / FILLED(SELL ORDER PLACED) / CANCELLED"
   }
 
   column "strategy" {
@@ -132,11 +132,11 @@ table "sell_orders" {
     null = true
   }
 
-  column "filled" {
-    type = tinyint
-    null = false
-    default = 0
-    comment = "0:unfilled / 1:filled"
+  column "status" {
+    type = varchar(100)
+    null = true
+    default = "UNFILLED"
+    comment = "UNFILLED / FILLED / CANCELLED"
   }
 
   column "remarks" {
