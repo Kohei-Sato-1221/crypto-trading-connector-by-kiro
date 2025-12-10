@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/crypto-trading-connector/backend/internal/generated"
-	"github.com/crypto-trading-connector/backend/internal/model"
 )
 
 // TradeHistoryRepository defines the interface for trade history data access
@@ -246,5 +245,8 @@ func getCryptocurrencyFromProductCode(productCode string) generated.TransactionC
 
 // roundToOneDecimal rounds a float64 to 1 decimal place
 func roundToOneDecimal(value float64) float64 {
-	return float64(int(value*10+0.5)) / 10
+	if value >= 0 {
+		return float64(int(value*10+0.5)) / 10
+	}
+	return float64(int(value*10-0.5)) / 10
 }
