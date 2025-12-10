@@ -27,9 +27,10 @@ export const useCryptoData = () => {
   /**
    * Fetch single cryptocurrency data from API
    */
-  const fetchSingleCrypto = async (id: string): Promise<CryptoDataWithError> => {
+  const fetchSingleCrypto = async (id: string, period?: string): Promise<CryptoDataWithError> => {
     try {
-      const response = await get<CryptoData>(`/crypto/${id}`)
+      const params = period ? { period } : {}
+      const response = await get<CryptoData>(`/crypto/${id}`, params)
       return { ...response, hasError: false }
     } catch (e) {
       console.error(`Failed to fetch ${id} data from API:`, e)
@@ -53,8 +54,8 @@ export const useCryptoData = () => {
   /**
    * Fetch cryptocurrency data from API (individual requests)
    */
-  const fetchFromAPI = async (): Promise<CryptoDataWithError[]> => {
-    const promises = cryptoIds.map(id => fetchSingleCrypto(id))
+  const fetchFromAPI = async (period?: string): Promise<CryptoDataWithError[]> => {
+    const promises = cryptoIds.map(id => fetchSingleCrypto(id, period))
     return await Promise.all(promises)
   }
 
@@ -62,7 +63,7 @@ export const useCryptoData = () => {
    * Fetch cryptocurrency data
    * Uses mock data or API based on configuration
    */
-  const fetchCryptoData = async (): Promise<CryptoDataWithError[]> => {
+  const fetchCryptoData = async (timeFilter?: string): Promise<CryptoDataWithError[]> => {
     loading.value = true
     error.value = null
 
@@ -70,11 +71,11 @@ export const useCryptoData = () => {
       let data: CryptoDataWithError[]
       
       if (useMockData) {
-        // Use mock data
+        // Use mock data (time filter doesn't affect mock data)
         data = getMockCryptoData().map(crypto => ({ ...crypto, hasError: false }))
       } else {
-        // Use API (fetch individually)
-        data = await fetchFromAPI()
+        // Use API (fetch individually with time filter)
+        data = await fetchFromAPI(timeFilter)
       }
       
       cryptoData.value = data
@@ -90,8 +91,8 @@ export const useCryptoData = () => {
   /**
    * Refresh cryptocurrency data
    */
-  const refresh = async () => {
-    return await fetchCryptoData()
+  const refresh = async (timeFilter?: string) => {
+    return await fetchCryptoData(timeFilter)
   }
 
   return {

@@ -95,7 +95,7 @@ describe('Mobile Optimization - Property Based Tests', () => {
     const wrapper = mount(MarketHeader)
 
     const filterButtons = wrapper.findAll('button')
-    expect(filterButtons.length).toBe(5)
+    expect(filterButtons.length).toBe(4)
 
     filterButtons.forEach(button => {
       const classes = button.classes().join(' ')

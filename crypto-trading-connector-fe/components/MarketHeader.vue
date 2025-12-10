@@ -5,7 +5,6 @@ import type { TimeFilter } from '~/types/crypto'
 const { selectedFilter, setFilter, isSelected } = useTimeFilter()
 
 const timeFilters: { value: TimeFilter; label: string }[] = [
-  { value: '24h', label: '24h' },
   { value: '7d', label: '7d' },
   { value: '30d', label: '30d' },
   { value: '1y', label: '1y' },
@@ -41,7 +40,7 @@ const handleFilterChange = (filter: TimeFilter) => {
       </div>
 
       <!-- Time Filter Buttons -->
-      <div class="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
+      <div class="flex items-center justify-center gap-2 overflow-x-auto pb-2 scrollbar-thin lg:justify-center">
         <button
           v-for="filter in timeFilters"
           :key="filter.value"

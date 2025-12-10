@@ -6,7 +6,7 @@ import type { TimeFilter } from '~/types/crypto'
  * Used for chart display period selection
  */
 export const useTimeFilter = () => {
-  const selectedFilter = ref<TimeFilter>('24h')
+  const selectedFilter = ref<TimeFilter>('7d')
 
   /**
    * Set the selected time filter

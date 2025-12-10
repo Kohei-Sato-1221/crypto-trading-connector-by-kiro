@@ -71,7 +71,7 @@ describe('Crypto Types - Property Based Tests', () => {
   })
 
   it('Property: TimeFilter should only accept valid values', () => {
-    const validTimeFilters: TimeFilter[] = ['24h', '7d', '30d', '1y', 'all']
+    const validTimeFilters: TimeFilter[] = ['7d', '30d', '1y', 'all']
     
     fc.assert(
       fc.property(
