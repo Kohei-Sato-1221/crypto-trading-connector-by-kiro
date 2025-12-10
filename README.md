@@ -1,9 +1,13 @@
 # Crypto Trading Connector
 
-暗号通貨取引Webアプリケーション（フロントエンド + バックエンドAPI） 
+暗号通貨(BTC, ETH)取引Webアプリケーション（フロントエンド + バックエンドAPI） 
+1. 各通貨の現在価格を確認
+2. 各通貨の買い注文を行う
+3. 自動売買における利益を計算して表示
 
-<img width="476" height="931" alt="ctc-ss" src="https://github.com/user-attachments/assets/5abf8f5c-825f-42d7-9bcc-6839a4d8b83f" />
-
+<img width="317" height="691" alt="crypto-sugar-ss-1" src="https://github.com/user-attachments/assets/50e6bc64-e156-4adb-8dce-ef2875006d23" />
+<img width="317" height="691" alt="crypto-sugar-ss-2" src="https://github.com/user-attachments/assets/52fc0d45-a071-43b2-8542-6cdb85a69d07" />
+<img width="314" height="690" alt="crypto-sugar-ss-3" src="https://github.com/user-attachments/assets/77a550f1-34d4-4434-859a-0eac61ab2a11" />
 
 ## プロジェクト構成
 
@@ -83,6 +87,10 @@ make run
 - [バックエンドREADME](crypto-trading-connector-be/README.md)
 - [フロントエンドREADME](crypto-trading-connector-fe/README.md)
 - [OpenAPI仕様書](openapi.yaml)
+
+## 備考
+- 当該アプリは仕様駆動開発（Kiro）を用いて実装されています。
+- 当該アプリはWebのUIを提供します。DBや自動売買のロジックは[こちら](https://github.com/Kohei-Sato-1221)のアプリで実装されています（当該アプリは、こちらのリポジトリで操作されているDBを参照するアプリです。）
 
 ## ライセンス
 
