@@ -33,8 +33,7 @@ describe('Market Page - Unit Tests', () => {
     routes: [
       { path: '/market', component: MarketPage },
       { path: '/trade', component: { template: '<div>Trade</div>' } },
-      { path: '/history', component: { template: '<div>History</div>' } },
-      { path: '/portfolio', component: { template: '<div>Portfolio</div>' } }
+      { path: '/history', component: { template: '<div>History</div>' } }
     ]
   })
 
@@ -141,6 +140,5 @@ describe('Market Page - Unit Tests', () => {
     expect(wrapper.html()).toContain('Market')
     expect(wrapper.html()).toContain('Trade')
     expect(wrapper.html()).toContain('History')
-    expect(wrapper.html()).toContain('Portfolio')
   })
 })

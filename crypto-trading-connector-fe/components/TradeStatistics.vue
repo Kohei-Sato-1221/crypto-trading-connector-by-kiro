@@ -1,5 +1,5 @@
 <template>
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 px-3 mb-6">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-3 px-3 mb-6 lg:max-w-2xl lg:mx-auto">
     <!-- Total Profit Card -->
     <div class="bg-[#1a2332] border border-[#2a3441] rounded-lg p-4 shadow-sm hover:bg-[#1e2738] transition-colors touch-manipulation">
       <div class="flex items-center mb-2">

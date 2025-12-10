@@ -10,7 +10,7 @@ vi.mock('#app', () => ({
 }))
 
 describe('NavigationBar - Unit Tests', () => {
-  it('should display 4 navigation links', () => {
+  it('should display 3 navigation links', () => {
     const wrapper = mount(NavigationBar, {
       global: {
         stubs: {
@@ -23,7 +23,7 @@ describe('NavigationBar - Unit Tests', () => {
     })
 
     const links = wrapper.findAll('a')
-    expect(links.length).toBe(4)
+    expect(links.length).toBe(3)
     
     wrapper.unmount()
   })
@@ -44,7 +44,6 @@ describe('NavigationBar - Unit Tests', () => {
     expect(text).toContain('Market')
     expect(text).toContain('Trade')
     expect(text).toContain('History')
-    expect(text).toContain('Portfolio')
     
     wrapper.unmount()
   })
@@ -61,12 +60,12 @@ describe('NavigationBar - Unit Tests', () => {
     // Find all NuxtLink components
     const links = wrapper.findAllComponents({ name: 'NuxtLink' })
     
-    // Verify we have 4 links
-    expect(links.length).toBe(4)
+    // Verify we have 3 links
+    expect(links.length).toBe(3)
     
     // Verify the paths
     const paths = links.map(link => link.props('to'))
-    expect(paths).toEqual(['/market', '/trade', '/history', '/portfolio'])
+    expect(paths).toEqual(['/market', '/trade', '/history'])
     
     wrapper.unmount()
   })
