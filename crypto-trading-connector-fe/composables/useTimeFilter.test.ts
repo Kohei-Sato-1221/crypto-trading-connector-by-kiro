@@ -1,10 +1,16 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import * as fc from 'fast-check'
 import { useTimeFilter } from './useTimeFilter'
 import type { TimeFilter } from '~/types/crypto'
 
 // Feature: crypto-market-page, Property 4: Time filter exclusivity
 describe('useTimeFilter - Property Based Tests', () => {
+  beforeEach(() => {
+    // Reset filter to default before each test
+    const { resetFilter } = useTimeFilter()
+    resetFilter()
+  })
+
   it('Property 4: For any time filter selection, exactly one filter should be active', () => {
     const validFilters: TimeFilter[] = ['7d', '30d', '1y', 'all']
     
@@ -12,7 +18,10 @@ describe('useTimeFilter - Property Based Tests', () => {
       fc.property(
         fc.constantFrom(...validFilters),
         (selectedFilter: TimeFilter) => {
-          const { setFilter, isSelected } = useTimeFilter()
+          const { setFilter, isSelected, resetFilter } = useTimeFilter()
+          
+          // Reset before each property test
+          resetFilter()
           
           // Set the filter
           setFilter(selectedFilter)
@@ -51,7 +60,10 @@ describe('useTimeFilter - Property Based Tests', () => {
         fc.constantFrom(...validFilters),
         fc.constantFrom(...validFilters),
         (firstFilter: TimeFilter, secondFilter: TimeFilter) => {
-          const { setFilter, isSelected } = useTimeFilter()
+          const { setFilter, isSelected, resetFilter } = useTimeFilter()
+          
+          // Reset before each property test
+          resetFilter()
           
           // Set first filter
           setFilter(firstFilter)
@@ -73,6 +85,12 @@ describe('useTimeFilter - Property Based Tests', () => {
 })
 
 describe('useTimeFilter - Unit Tests', () => {
+  beforeEach(() => {
+    // Reset filter to default before each test
+    const { resetFilter } = useTimeFilter()
+    resetFilter()
+  })
+
   it('should have default filter of 7d', () => {
     const { selectedFilter } = useTimeFilter()
     expect(selectedFilter.value).toBe('7d')

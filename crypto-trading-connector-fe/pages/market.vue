@@ -10,7 +10,7 @@ import NavigationBar from '~/components/NavigationBar.vue'
 // Use crypto data composable
 const { cryptoData, loading, error, fetchCryptoData, useMockData } = useCryptoData()
 
-// Use time filter composable
+// Use time filter composable (now uses global state)
 const { selectedFilter } = useTimeFilter()
 
 // Fetch data on mount

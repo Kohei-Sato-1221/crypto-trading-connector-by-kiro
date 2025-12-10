@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import { useOrderData } from '~/composables/useOrderData'
+import { useTimeFilter } from '~/composables/useTimeFilter'
 import OrderHeader from '~/components/OrderHeader.vue'
 import PriceDisplay from '~/components/PriceDisplay.vue'
 import TimeFilterButtons from '~/components/TimeFilterButtons.vue'
@@ -15,7 +16,9 @@ const validPair = (initialPair === 'ETH/JPY' || initialPair === 'BTC/JPY') ? ini
 
 // State
 const selectedPair = ref<'BTC/JPY' | 'ETH/JPY'>(validPair)
-const selectedTimeFilter = ref('7D')
+
+// Use shared time filter composable
+const { selectedFilter } = useTimeFilter()
 
 // Use order data composable
 const {
@@ -36,10 +39,21 @@ const symbol = computed(() => {
 
 const isPositive = computed(() => priceChange.value > 0)
 
+// Convert TimeFilter to the format expected by useOrderData
+const convertTimeFilter = (filter: string): string => {
+  const filterMap: Record<string, string> = {
+    '7d': '7D',
+    '30d': '30D',
+    '1y': '1Y',
+    'all': '1Y' // fallback to 1Y for 'all'
+  }
+  return filterMap[filter] || '7D'
+}
+
 // Fetch data on mount
 onMounted(async () => {
   try {
-    await fetchAllData(selectedTimeFilter.value)
+    await fetchAllData(convertTimeFilter(selectedFilter.value))
   } catch (e) {
     console.error('Failed to fetch order data:', e)
   }
@@ -48,16 +62,16 @@ onMounted(async () => {
 // Watch for pair changes
 watch(selectedPair, async () => {
   try {
-    await fetchAllData(selectedTimeFilter.value)
+    await fetchAllData(convertTimeFilter(selectedFilter.value))
   } catch (e) {
     console.error('Failed to fetch order data:', e)
   }
 })
 
 // Watch for time filter changes
-watch(selectedTimeFilter, async (newFilter) => {
+watch(selectedFilter, async (newFilter) => {
   try {
-    await fetchAllData(newFilter)
+    await fetchAllData(convertTimeFilter(newFilter))
   } catch (e) {
     console.error('Failed to fetch chart data:', e)
   }
@@ -76,7 +90,7 @@ const handleSubmitOrder = async (order: any) => {
     console.log('Order submitted successfully:', result)
     
     // Refresh balance after successful order
-    await fetchAllData(selectedTimeFilter.value)
+    await fetchAllData(convertTimeFilter(selectedFilter.value))
   } catch (error) {
     console.error('Order submission failed:', error)
     throw error // Re-throw to let OrderForm handle the error display
@@ -102,16 +116,13 @@ const handleSubmitOrder = async (order: any) => {
       />
 
       <!-- Time Filter Buttons -->
-      <TimeFilterButtons
-        :selected-filter="selectedTimeFilter"
-        @update:selected-filter="(filter) => selectedTimeFilter = filter"
-      />
+      <TimeFilterButtons />
 
       <!-- Price Chart -->
       <div class="px-4 py-4">
         <div class="bg-[#1c2936] border border-gray-800 rounded-2xl shadow-sm p-4">
           <div class="text-slate-500 text-xs font-semibold mb-4">
-            Price History (Last {{ selectedTimeFilter }})
+            Price History (Last {{ convertTimeFilter(selectedFilter) }})
           </div>
           
           <!-- Loading State -->

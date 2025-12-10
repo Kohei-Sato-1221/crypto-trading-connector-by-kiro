@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { ref } from 'vue'
 import fc from 'fast-check'
+import { useTimeFilter } from '~/composables/useTimeFilter'
 
 // Mock all Nuxt composables and utilities
 vi.mock('#app', () => ({
@@ -87,9 +88,7 @@ const MockTradePage = {
     },
     TimeFilterButtons: {
       name: 'TimeFilterButtons',
-      props: ['selectedFilter'],
-      emits: ['update:selectedFilter'],
-      template: '<div class="time-filter">{{ selectedFilter }}</div>'
+      template: '<div class="time-filter">TimeFilterButtons</div>'
     },
     OrderForm: {
       name: 'OrderForm',
@@ -236,31 +235,34 @@ describe('Trade Page - Property Based Tests', () => {
     })
 
     it('should initialize with 7D as default time filter', async () => {
+      const { resetFilter, selectedFilter } = useTimeFilter()
+      resetFilter()
+      
       const wrapper = mount(MockTradePage)
-
       await wrapper.vm.$nextTick()
 
-      const timeFilterButtons = wrapper.findComponent({ name: 'TimeFilterButtons' })
-      expect(timeFilterButtons.props('selectedFilter')).toBe('7D')
+      expect(selectedFilter.value).toBe('7d')
     })
 
-    it('should update time filter when button is clicked', async () => {
-      const wrapper = mount(MockTradePage)
-
-      await wrapper.vm.$nextTick()
-
-      const timeFilterButtons = wrapper.findComponent({ name: 'TimeFilterButtons' })
+    it('should update time filter when changed globally', async () => {
+      const { resetFilter, setFilter, selectedFilter } = useTimeFilter()
+      resetFilter()
       
-      // Change filter
-      await timeFilterButtons.vm.$emit('update:selectedFilter', '30D')
+      const wrapper = mount(MockTradePage)
       await wrapper.vm.$nextTick()
 
-      expect(timeFilterButtons.props('selectedFilter')).toBe('30D')
+      // Change filter globally
+      setFilter('30d')
+      await wrapper.vm.$nextTick()
+
+      expect(selectedFilter.value).toBe('30d')
     })
 
     it('should display price history label with selected time filter', async () => {
+      const { resetFilter } = useTimeFilter()
+      resetFilter()
+      
       const wrapper = mount(MockTradePage)
-
       await wrapper.vm.$nextTick()
 
       expect(wrapper.text()).toContain('Price History (Last 7D)')

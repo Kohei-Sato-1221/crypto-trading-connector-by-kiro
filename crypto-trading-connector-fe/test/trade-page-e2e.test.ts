@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { ref, computed } from 'vue'
+import { useTimeFilter } from '~/composables/useTimeFilter'
 
 // Mock all Nuxt composables and utilities
 vi.mock('#app', () => ({
@@ -87,9 +88,7 @@ const MockTradePage = {
     },
     TimeFilterButtons: {
       name: 'TimeFilterButtons',
-      props: ['selectedFilter'],
-      emits: ['update:selectedFilter'],
-      template: '<div class="time-filter">{{ selectedFilter }}</div>'
+      template: '<div class="time-filter">TimeFilterButtons</div>'
     },
     OrderForm: {
       name: 'OrderForm',
@@ -178,24 +177,28 @@ describe('Trade Page - E2E Tests', () => {
   })
 
   it('should display time filter buttons', async () => {
+    const { resetFilter, selectedFilter } = useTimeFilter()
+    resetFilter()
+    
     const wrapper = mount(MockTradePage)
 
     const timeFilterButtons = wrapper.findComponent({ name: 'TimeFilterButtons' })
     expect(timeFilterButtons.exists()).toBe(true)
-    expect(timeFilterButtons.props('selectedFilter')).toBe('7D')
+    expect(selectedFilter.value).toBe('7d')
   })
 
   it('should change time filter', async () => {
+    const { resetFilter, setFilter, selectedFilter } = useTimeFilter()
+    resetFilter()
+    
     const wrapper = mount(MockTradePage)
 
-    const timeFilterButtons = wrapper.findComponent({ name: 'TimeFilterButtons' })
-    
-    // Emit filter change
-    await timeFilterButtons.vm.$emit('update:selectedFilter', '30D')
+    // Change filter globally
+    setFilter('30d')
     await wrapper.vm.$nextTick()
 
     // Check if filter was updated
-    expect(timeFilterButtons.props('selectedFilter')).toBe('30D')
+    expect(selectedFilter.value).toBe('30d')
   })
 
   it('should display order form with correct props', async () => {
