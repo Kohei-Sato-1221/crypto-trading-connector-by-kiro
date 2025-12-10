@@ -18,6 +18,8 @@ tags:
     description: Order management operations
   - name: balance
     description: Balance and wallet operations
+  - name: trade-history
+    description: Trade history and statistics operations
 
 paths:
   /crypto/market:
@@ -174,6 +176,111 @@ paths:
                 $ref: '#/components/schemas/Balance'
         '401':
           description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /trade-history/statistics:
+    get:
+      tags:
+        - trade-history
+      summary: Get trade statistics
+      description: Returns aggregated trade statistics including total profit, execution count, and profit percentage
+      operationId: getTradeStatistics
+      parameters:
+        - name: asset_filter
+          in: query
+          required: false
+          description: Filter by cryptocurrency asset
+          schema:
+            type: string
+            enum: [all, BTC, ETH]
+            default: all
+        - name: time_filter
+          in: query
+          required: false
+          description: Filter by time period
+          schema:
+            type: string
+            enum: [all, 7days]
+            default: all
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TradeStatistics'
+        '400':
+          description: Invalid filter parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /trade-history/transactions:
+    get:
+      tags:
+        - trade-history
+      summary: Get trade transaction log
+      description: Returns a paginated list of trade transactions with filtering options
+      operationId: getTradeTransactions
+      parameters:
+        - name: asset_filter
+          in: query
+          required: false
+          description: Filter by cryptocurrency asset
+          schema:
+            type: string
+            enum: [all, BTC, ETH]
+            default: all
+        - name: time_filter
+          in: query
+          required: false
+          description: Filter by time period
+          schema:
+            type: string
+            enum: [all, 7days]
+            default: all
+        - name: page
+          in: query
+          required: false
+          description: Page number for pagination
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          required: false
+          description: Number of transactions per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionLogResponse'
+        '400':
+          description: Invalid filter or pagination parameters
           content:
             application/json:
               schema:
@@ -402,6 +509,135 @@ components:
           description: Unix timestamp of the balance snapshot
           example: 1704067200
 
+    TradeStatistics:
+      type: object
+      required:
+        - total_profit
+        - profit_percentage
+        - execution_count
+        - period
+      properties:
+        total_profit:
+          type: number
+          format: double
+          description: Total profit in JPY (rounded to 1 decimal place)
+          example: 115700.0
+        profit_percentage:
+          type: number
+          format: double
+          description: Profit percentage (rounded to 1 decimal place)
+          example: 11.6
+        execution_count:
+          type: integer
+          description: Total number of executed trades
+          example: 12
+        period:
+          type: string
+          description: Time period for the statistics
+          enum: [all, 7days]
+          example: all
+
+    Transaction:
+      type: object
+      required:
+        - id
+        - cryptocurrency
+        - timestamp
+        - profit
+        - order_type
+        - order_id
+        - buy_price
+        - sell_price
+        - amount
+        - buy_order_id
+      properties:
+        id:
+          type: string
+          description: Unique transaction identifier
+          example: "1"
+        cryptocurrency:
+          type: string
+          description: Cryptocurrency name
+          enum: [Bitcoin, Ethereum]
+          example: Bitcoin
+        timestamp:
+          type: string
+          format: date-time
+          description: Transaction timestamp
+          example: 2024-12-10T14:30:00Z
+        profit:
+          type: number
+          format: double
+          description: Profit amount in JPY (rounded to 1 decimal place)
+          example: 45000.0
+        order_type:
+          type: string
+          description: Order type (always sell for completed trades)
+          enum: [sell]
+          example: sell
+        order_id:
+          type: string
+          description: Sell order ID
+          example: "#BF-88219"
+        buy_price:
+          type: number
+          format: double
+          description: Buy price in JPY
+          example: 5800000
+        sell_price:
+          type: number
+          format: double
+          description: Sell price in JPY
+          example: 6100000
+        amount:
+          type: number
+          format: double
+          description: Amount of cryptocurrency traded
+          example: 0.15
+        buy_order_id:
+          type: string
+          description: Related buy order ID
+          example: "#BF-88218"
+
+    Pagination:
+      type: object
+      required:
+        - current_page
+        - total_pages
+        - total_count
+        - has_next
+      properties:
+        current_page:
+          type: integer
+          description: Current page number
+          example: 1
+        total_pages:
+          type: integer
+          description: Total number of pages
+          example: 2
+        total_count:
+          type: integer
+          description: Total number of transactions
+          example: 12
+        has_next:
+          type: boolean
+          description: Whether there are more pages available
+          example: true
+
+    TransactionLogResponse:
+      type: object
+      required:
+        - transactions
+        - pagination
+      properties:
+        transactions:
+          type: array
+          description: Array of trade transactions
+          items:
+            $ref: '#/components/schemas/Transaction'
+        pagination:
+          $ref: '#/components/schemas/Pagination'
+
     ErrorResponse:
       type: object
       required:
@@ -422,6 +658,8 @@ components:
             - UNAUTHORIZED
             - INTERNAL_ERROR
             - INTERNAL_SERVER_ERROR
+            - INVALID_FILTER
+            - INVALID_PAGINATION
           example: INSUFFICIENT_BALANCE
         message:
           type: string
