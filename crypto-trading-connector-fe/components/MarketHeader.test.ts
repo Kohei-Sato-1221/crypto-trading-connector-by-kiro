@@ -5,9 +5,9 @@ import MarketHeader from './MarketHeader.vue'
 // Mock the composable
 vi.mock('~/composables/useTimeFilter', () => ({
   useTimeFilter: () => ({
-    selectedFilter: { value: '24h' },
+    selectedFilter: { value: '7d' },
     setFilter: vi.fn(),
-    isSelected: (filter: string) => filter === '24h'
+    isSelected: (filter: string) => filter === '7d'
   })
 }))
 
@@ -20,25 +20,24 @@ describe('MarketHeader - Unit Tests', () => {
     expect(statusText).toContain('Real-time Data')
   })
 
-  it('should display 5 time filter buttons', () => {
+  it('should display 4 time filter buttons', () => {
     const wrapper = mount(MarketHeader)
     
     const buttons = wrapper.findAll('button')
-    expect(buttons.length).toBe(5)
+    expect(buttons.length).toBe(4)
   })
 
   it('should display correct time filter labels', () => {
     const wrapper = mount(MarketHeader)
     
     const text = wrapper.text()
-    expect(text).toContain('24h')
     expect(text).toContain('7d')
     expect(text).toContain('30d')
     expect(text).toContain('1y')
     expect(text).toContain('All')
   })
 
-  it('should have 24h button selected by default', () => {
+  it('should have 7d button selected by default', () => {
     const wrapper = mount(MarketHeader)
     
     const buttons = wrapper.findAll('button')
@@ -47,7 +46,7 @@ describe('MarketHeader - Unit Tests', () => {
     )
     
     expect(activeButton).toBeDefined()
-    expect(activeButton?.text()).toBe('24h')
+    expect(activeButton?.text()).toBe('7d')
   })
 
   it('should display app title', () => {

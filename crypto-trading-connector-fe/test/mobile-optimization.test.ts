@@ -17,8 +17,7 @@ describe('Mobile Optimization - Property Based Tests', () => {
     routes: [
       { path: '/market', component: { template: '<div>Market</div>' } },
       { path: '/trade', component: { template: '<div>Trade</div>' } },
-      { path: '/history', component: { template: '<div>History</div>' } },
-      { path: '/portfolio', component: { template: '<div>Portfolio</div>' } }
+      { path: '/history', component: { template: '<div>History</div>' } }
     ]
   })
 
@@ -84,7 +83,7 @@ describe('Mobile Optimization - Property Based Tests', () => {
     })
 
     const navLinks = wrapper.findAll('a')
-    expect(navLinks.length).toBe(4)
+    expect(navLinks.length).toBe(3)
 
     navLinks.forEach(link => {
       const classes = link.classes().join(' ')
@@ -96,7 +95,7 @@ describe('Mobile Optimization - Property Based Tests', () => {
     const wrapper = mount(MarketHeader)
 
     const filterButtons = wrapper.findAll('button')
-    expect(filterButtons.length).toBe(5)
+    expect(filterButtons.length).toBe(4)
 
     filterButtons.forEach(button => {
       const classes = button.classes().join(' ')

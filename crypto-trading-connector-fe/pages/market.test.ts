@@ -27,14 +27,22 @@ vi.mock('~/composables/useAutoRefresh', () => ({
   })
 }))
 
+// Mock useTimeFilter composable
+vi.mock('~/composables/useTimeFilter', () => ({
+  useTimeFilter: () => ({
+    selectedFilter: ref('7d'),
+    setFilter: vi.fn(),
+    isSelected: vi.fn()
+  })
+}))
+
 describe('Market Page - Unit Tests', () => {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
       { path: '/market', component: MarketPage },
       { path: '/trade', component: { template: '<div>Trade</div>' } },
-      { path: '/history', component: { template: '<div>History</div>' } },
-      { path: '/portfolio', component: { template: '<div>Portfolio</div>' } }
+      { path: '/history', component: { template: '<div>History</div>' } }
     ]
   })
 
@@ -114,7 +122,6 @@ describe('Market Page - Unit Tests', () => {
     expect(wrapper.html()).toContain('Market is Open')
 
     // Check for time filter buttons
-    expect(wrapper.html()).toContain('24h')
     expect(wrapper.html()).toContain('7d')
     expect(wrapper.html()).toContain('30d')
     expect(wrapper.html()).toContain('1y')
@@ -141,6 +148,5 @@ describe('Market Page - Unit Tests', () => {
     expect(wrapper.html()).toContain('Market')
     expect(wrapper.html()).toContain('Trade')
     expect(wrapper.html()).toContain('History')
-    expect(wrapper.html()).toContain('Portfolio')
   })
 })

@@ -1,8 +1,9 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { mount } from '@vue/test-utils'
 import OrderHeader from '~/components/OrderHeader.vue'
 import PriceDisplay from '~/components/PriceDisplay.vue'
 import TimeFilterButtons from '~/components/TimeFilterButtons.vue'
+import { useTimeFilter } from '~/composables/useTimeFilter'
 
 describe('Order Page Components - Unit Tests', () => {
   describe('OrderHeader', () => {
@@ -149,75 +150,61 @@ describe('Order Page Components - Unit Tests', () => {
   })
 
   describe('TimeFilterButtons', () => {
+    beforeEach(() => {
+      // Reset filter to default before each test
+      const { resetFilter } = useTimeFilter()
+      resetFilter()
+    })
+
     it('should render all time filter buttons', () => {
-      const wrapper = mount(TimeFilterButtons, {
-        props: {
-          selectedFilter: '7D'
-        }
-      })
+      const wrapper = mount(TimeFilterButtons)
 
       const buttons = wrapper.findAll('button')
-      expect(buttons).toHaveLength(5)
-      expect(buttons[0].text()).toBe('1H')
-      expect(buttons[1].text()).toBe('24H')
-      expect(buttons[2].text()).toBe('7D')
-      expect(buttons[3].text()).toBe('30D')
-      expect(buttons[4].text()).toBe('1Y')
+      expect(buttons).toHaveLength(3)
+      expect(buttons[0].text()).toBe('7D')
+      expect(buttons[1].text()).toBe('30D')
+      expect(buttons[2].text()).toBe('1Y')
     })
 
     it('should highlight the selected filter', () => {
-      const wrapper = mount(TimeFilterButtons, {
-        props: {
-          selectedFilter: '7D'
-        }
-      })
+      const wrapper = mount(TimeFilterButtons)
 
       const buttons = wrapper.findAll('button')
-      const sevenDayButton = buttons[2]
+      const sevenDayButton = buttons[0]
 
-      // 7D button should have active styles
+      // 7D button should have active styles (default)
       expect(sevenDayButton.classes()).toContain('bg-[#137fec]')
       expect(sevenDayButton.classes()).toContain('text-white')
     })
 
-    it('should emit update:selectedFilter when a button is clicked', async () => {
-      const wrapper = mount(TimeFilterButtons, {
-        props: {
-          selectedFilter: '7D'
-        }
-      })
+    it('should update filter when a button is clicked', async () => {
+      const { selectedFilter } = useTimeFilter()
+      const wrapper = mount(TimeFilterButtons)
 
       const buttons = wrapper.findAll('button')
-      await buttons[3].trigger('click') // Click 30D
+      await buttons[1].trigger('click') // Click 30D
 
-      expect(wrapper.emitted('update:selectedFilter')).toBeTruthy()
-      expect(wrapper.emitted('update:selectedFilter')?.[0]).toEqual(['30D'])
+      // Check if the global state was updated
+      expect(selectedFilter.value).toBe('30d')
     })
 
     it('should switch between filters correctly', async () => {
-      const wrapper = mount(TimeFilterButtons, {
-        props: {
-          selectedFilter: '7D'
-        }
-      })
+      const { selectedFilter } = useTimeFilter()
+      const wrapper = mount(TimeFilterButtons)
 
       const buttons = wrapper.findAll('button')
       
-      // Click 1H button
-      await buttons[0].trigger('click')
-      expect(wrapper.emitted('update:selectedFilter')?.[0]).toEqual(['1H'])
+      // Click 30D button
+      await buttons[1].trigger('click')
+      expect(selectedFilter.value).toBe('30d')
 
       // Click 1Y button
-      await buttons[4].trigger('click')
-      expect(wrapper.emitted('update:selectedFilter')?.[1]).toEqual(['1Y'])
+      await buttons[2].trigger('click')
+      expect(selectedFilter.value).toBe('1y')
     })
 
     it('should have adequate touch target size for mobile', () => {
-      const wrapper = mount(TimeFilterButtons, {
-        props: {
-          selectedFilter: '7D'
-        }
-      })
+      const wrapper = mount(TimeFilterButtons)
 
       const buttons = wrapper.findAll('button')
       buttons.forEach(button => {

@@ -9,8 +9,7 @@ interface NavigationItem {
 const navItems: NavigationItem[] = [
   { name: 'market', path: '/market', icon: '📊', label: 'Market' },
   { name: 'trade', path: '/trade', icon: '💱', label: 'Trade' },
-  { name: 'history', path: '/history', icon: '📜', label: 'History' },
-  { name: 'portfolio', path: '/portfolio', icon: '💼', label: 'Portfolio' }
+  { name: 'history', path: '/history', icon: '📜', label: 'History' }
 ]
 
 // Get current route - use composable in production, allow override for testing

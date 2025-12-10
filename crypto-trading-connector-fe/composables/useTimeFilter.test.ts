@@ -1,18 +1,27 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import * as fc from 'fast-check'
 import { useTimeFilter } from './useTimeFilter'
 import type { TimeFilter } from '~/types/crypto'
 
 // Feature: crypto-market-page, Property 4: Time filter exclusivity
 describe('useTimeFilter - Property Based Tests', () => {
+  beforeEach(() => {
+    // Reset filter to default before each test
+    const { resetFilter } = useTimeFilter()
+    resetFilter()
+  })
+
   it('Property 4: For any time filter selection, exactly one filter should be active', () => {
-    const validFilters: TimeFilter[] = ['24h', '7d', '30d', '1y', 'all']
+    const validFilters: TimeFilter[] = ['7d', '30d', '1y', 'all']
     
     fc.assert(
       fc.property(
         fc.constantFrom(...validFilters),
         (selectedFilter: TimeFilter) => {
-          const { setFilter, isSelected } = useTimeFilter()
+          const { setFilter, isSelected, resetFilter } = useTimeFilter()
+          
+          // Reset before each property test
+          resetFilter()
           
           // Set the filter
           setFilter(selectedFilter)
@@ -36,22 +45,25 @@ describe('useTimeFilter - Property Based Tests', () => {
     )
   })
 
-  it('Property: Default filter should be 24h', () => {
+  it('Property: Default filter should be 7d', () => {
     const { selectedFilter, isSelected } = useTimeFilter()
     
-    expect(selectedFilter.value).toBe('24h')
-    expect(isSelected('24h')).toBe(true)
+    expect(selectedFilter.value).toBe('7d')
+    expect(isSelected('7d')).toBe(true)
   })
 
   it('Property: Setting a filter should deselect previous filter', () => {
-    const validFilters: TimeFilter[] = ['24h', '7d', '30d', '1y', 'all']
+    const validFilters: TimeFilter[] = ['7d', '30d', '1y', 'all']
     
     fc.assert(
       fc.property(
         fc.constantFrom(...validFilters),
         fc.constantFrom(...validFilters),
         (firstFilter: TimeFilter, secondFilter: TimeFilter) => {
-          const { setFilter, isSelected } = useTimeFilter()
+          const { setFilter, isSelected, resetFilter } = useTimeFilter()
+          
+          // Reset before each property test
+          resetFilter()
           
           // Set first filter
           setFilter(firstFilter)
@@ -73,9 +85,15 @@ describe('useTimeFilter - Property Based Tests', () => {
 })
 
 describe('useTimeFilter - Unit Tests', () => {
-  it('should have default filter of 24h', () => {
+  beforeEach(() => {
+    // Reset filter to default before each test
+    const { resetFilter } = useTimeFilter()
+    resetFilter()
+  })
+
+  it('should have default filter of 7d', () => {
     const { selectedFilter } = useTimeFilter()
-    expect(selectedFilter.value).toBe('24h')
+    expect(selectedFilter.value).toBe('7d')
   })
 
   it('should update selected filter when setFilter is called', () => {
@@ -94,7 +112,6 @@ describe('useTimeFilter - Unit Tests', () => {
     setFilter('1y')
     
     expect(isSelected('1y')).toBe(true)
-    expect(isSelected('24h')).toBe(false)
     expect(isSelected('7d')).toBe(false)
     expect(isSelected('30d')).toBe(false)
     expect(isSelected('all')).toBe(false)
@@ -102,7 +119,7 @@ describe('useTimeFilter - Unit Tests', () => {
 
   it('should handle all valid time filter values', () => {
     const { setFilter, isSelected } = useTimeFilter()
-    const validFilters: TimeFilter[] = ['24h', '7d', '30d', '1y', 'all']
+    const validFilters: TimeFilter[] = ['7d', '30d', '1y', 'all']
     
     for (const filter of validFilters) {
       setFilter(filter)

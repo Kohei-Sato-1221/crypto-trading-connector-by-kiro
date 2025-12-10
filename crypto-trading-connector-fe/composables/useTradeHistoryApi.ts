@@ -4,8 +4,7 @@ import type {
   TransactionLogResponse, 
   TransactionLogResponseUI,
   Transaction,
-  TransactionUI,
-  ApiRequestParams 
+  TransactionUI
 } from '~/types/tradeHistory'
 
 /**
