@@ -35,10 +35,6 @@ export const useOrderData = (pair: Ref<string>) => {
    */
   const timeFilterToPeriod = (filter: string): string => {
     switch (filter) {
-      case '1H':
-        return '24h'
-      case '24H':
-        return '24h'
       case '7D':
         return '7d'
       case '30D':
@@ -55,7 +51,7 @@ export const useOrderData = (pair: Ref<string>) => {
    * Note: The /crypto/:id endpoint returns both price and chart data,
    * so we don't need separate calls. This matches how market page works.
    * 
-   * @param timeFilter - Time range filter (1H, 24H, 7D, 30D, 1Y)
+   * @param timeFilter - Time range filter (7D, 30D, 1Y)
    */
   const fetchCryptoData = async (timeFilter: string = '7D') => {
     loading.value = true
@@ -141,7 +137,7 @@ export const useOrderData = (pair: Ref<string>) => {
   /**
    * Fetch all data (crypto data + balance)
    * 
-   * @param timeFilter - Time range filter (1H, 24H, 7D, 30D, 1Y)
+   * @param timeFilter - Time range filter (7D, 30D, 1Y)
    */
   const fetchAllData = async (timeFilter: string = '7D') => {
     await Promise.all([

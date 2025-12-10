@@ -10,7 +10,7 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
-const filters = ['1H', '24H', '7D', '30D', '1Y'] as const
+const filters = ['7D', '30D', '1Y'] as const
 
 const selectFilter = (filter: string) => {
   emit('update:selectedFilter', filter)

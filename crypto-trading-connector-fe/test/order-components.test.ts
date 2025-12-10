@@ -157,12 +157,10 @@ describe('Order Page Components - Unit Tests', () => {
       })
 
       const buttons = wrapper.findAll('button')
-      expect(buttons).toHaveLength(5)
-      expect(buttons[0].text()).toBe('1H')
-      expect(buttons[1].text()).toBe('24H')
-      expect(buttons[2].text()).toBe('7D')
-      expect(buttons[3].text()).toBe('30D')
-      expect(buttons[4].text()).toBe('1Y')
+      expect(buttons).toHaveLength(3)
+      expect(buttons[0].text()).toBe('7D')
+      expect(buttons[1].text()).toBe('30D')
+      expect(buttons[2].text()).toBe('1Y')
     })
 
     it('should highlight the selected filter', () => {
@@ -173,7 +171,7 @@ describe('Order Page Components - Unit Tests', () => {
       })
 
       const buttons = wrapper.findAll('button')
-      const sevenDayButton = buttons[2]
+      const sevenDayButton = buttons[0]
 
       // 7D button should have active styles
       expect(sevenDayButton.classes()).toContain('bg-[#137fec]')
@@ -188,7 +186,7 @@ describe('Order Page Components - Unit Tests', () => {
       })
 
       const buttons = wrapper.findAll('button')
-      await buttons[3].trigger('click') // Click 30D
+      await buttons[1].trigger('click') // Click 30D
 
       expect(wrapper.emitted('update:selectedFilter')).toBeTruthy()
       expect(wrapper.emitted('update:selectedFilter')?.[0]).toEqual(['30D'])
@@ -203,12 +201,12 @@ describe('Order Page Components - Unit Tests', () => {
 
       const buttons = wrapper.findAll('button')
       
-      // Click 1H button
-      await buttons[0].trigger('click')
-      expect(wrapper.emitted('update:selectedFilter')?.[0]).toEqual(['1H'])
+      // Click 30D button
+      await buttons[1].trigger('click')
+      expect(wrapper.emitted('update:selectedFilter')?.[0]).toEqual(['30D'])
 
       // Click 1Y button
-      await buttons[4].trigger('click')
+      await buttons[2].trigger('click')
       expect(wrapper.emitted('update:selectedFilter')?.[1]).toEqual(['1Y'])
     })
 
