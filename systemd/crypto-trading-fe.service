@@ -9,18 +9,13 @@ Requires=crypto-trading-be.service
 Type=simple
 User=pi
 Group=pi
-WorkingDirectory=/home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-fe
-Environment=PATH=/usr/local/bin:/usr/bin:/bin
+# WorkingDirectory=/home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-fe
+Environment=PATH=/opt/nodejs/bin:/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=/home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-fe/.env
 Environment=NODE_ENV=production
-Environment=HOST=0.0.0.0
-Environment=PORT=3000
-Environment=API_BASE_URL=http://10.221.1.199:8090 
-Environment=FRONTEND_PORT=3000
-Environment=FRONTEND_HOST=0.0.0.0
-Environment=USE_MOCK_DATA=false
-ExecStartPre=/usr/bin/npm ci --only=production
-ExecStartPre=/usr/bin/npm run build
-ExecStart=/usr/bin/npm run preview -- --host 0.0.0.0 --port 3000
+ExecStartPre=/bin/bash -c 'cd /home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-fe && /opt/nodejs/bin/npm ci --only=production'
+ExecStartPre=/bin/bash -c 'cd /home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-fe && /opt/nodejs/bin/npm run build'
+ExecStart=/bin/bash -c 'cd /home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-fe && /opt/nodejs/bin/npm run preview -- --host 0.0.0.0 --port 3000'
 ExecStop=/bin/kill -TERM $MAINPID
 Restart=always
 RestartSec=10
@@ -28,15 +23,12 @@ StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=crypto-trading-fe
 
-# Security settings
-NoNewPrivileges=true
-PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=/home/pi/workspace/crypto-trading-connector-by-kiro
-ProtectKernelTunables=true
-ProtectKernelModules=true
-ProtectControlGroups=true
+# Security settings (disabled for troubleshooting)
+# NoNewPrivileges=false
+# PrivateTmp=false
+# ProtectSystem=false
+# ProtectHome=false
+UMask=0022
 
 # Resource limits
 LimitNOFILE=65536

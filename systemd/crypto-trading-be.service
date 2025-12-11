@@ -8,22 +8,9 @@ Wants=network.target
 Type=simple
 User=pi
 Group=pi
-WorkingDirectory=/home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-be
-Environment=PATH=/usr/local/go/bin:/usr/local/bin:/usr/bin:/bin
-Environment=GOPATH=/home/pi/go
-Environment=GOCACHE=/home/pi/.cache/go-build
-Environment=DB_HOST=host
-Environment=DB_USER=user
-Environment=DB_PASSWORD=user
-Environment=DB_NAME=db_name
-Environment=DB_PORT=3307
-Environment=SERVER_PORT=8090
-Environment=BITFLYER_API_URL=https://api.bitflyer.com
-Environment=BITFLYER_API_KEY=api_key
-Environment=BITFLYER_API_SECRET=api_secret
-Environment=CORS_ALLOWED_ORIGINS=http://10.221.1.162:3000,http://10.221.1.199:3000,http://localhost:3000
-ExecStartPre=/usr/local/go/bin/go build -o bin/server cmd/server/main.go
-ExecStart=/home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-be/bin/server
+# WorkingDirectory=/home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-be
+EnvironmentFile=/home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-be/.env
+ExecStart=/bin/bash -c 'cd /home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-be && ./server'
 ExecStop=/bin/kill -TERM $MAINPID
 Restart=always
 RestartSec=10
@@ -31,15 +18,12 @@ StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=crypto-trading-be
 
-# Security settings
-NoNewPrivileges=true
-PrivateTmp=true
-ProtectSystem=strict
-ProtectHome=true
-ReadWritePaths=/home/pi/workspace/crypto-trading-connector-by-kiro
-ProtectKernelTunables=true
-ProtectKernelModules=true
-ProtectControlGroups=true
+# Security settings (disabled for troubleshooting)
+# NoNewPrivileges=false
+# PrivateTmp=false
+# ProtectSystem=false
+# ProtectHome=false
+UMask=0022
 
 # Resource limits
 LimitNOFILE=65536
