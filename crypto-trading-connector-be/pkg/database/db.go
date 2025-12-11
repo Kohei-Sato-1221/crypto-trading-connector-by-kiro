@@ -20,13 +20,19 @@ type Config struct {
 
 // LoadConfigFromEnv loads database configuration from environment variables
 func LoadConfigFromEnv() *Config {
-	return &Config{
+	config := &Config{
 		Host:     getEnv("DB_HOST", "localhost"),
 		Port:     getEnv("DB_PORT", "3306"),
 		User:     getEnv("DB_USER", "root"),
 		Password: getEnv("DB_PASSWORD", ""),
 		DBName:   getEnv("DB_NAME", "crypto_trading_db"),
 	}
+
+	// Debug: Print loaded configuration
+	fmt.Printf("DEBUG: Loaded DB config - Host: %s, Port: %s, User: %s, DBName: %s\n",
+		config.Host, config.Port, config.User, config.DBName)
+
+	return config
 }
 
 // Connect establishes a connection to the MySQL database
