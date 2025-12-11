@@ -3,9 +3,9 @@ package database
 import (
 	"database/sql"
 	"fmt"
-	"os"
 	"time"
 
+	"github.com/crypto-trading-connector/backend/utils"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -21,11 +21,11 @@ type Config struct {
 // LoadConfigFromEnv loads database configuration from environment variables
 func LoadConfigFromEnv() *Config {
 	config := &Config{
-		Host:     getEnv("DB_HOST", "localhost"),
-		Port:     getEnv("DB_PORT", "3306"),
-		User:     getEnv("DB_USER", "root"),
-		Password: getEnv("DB_PASSWORD", ""),
-		DBName:   getEnv("DB_NAME", "crypto_trading_db"),
+		Host:     utils.GetEnv("DB_HOST", "localhost"),
+		Port:     utils.GetEnv("DB_PORT", "3306"),
+		User:     utils.GetEnv("DB_USER", "root"),
+		Password: utils.GetEnv("DB_PASSWORD", ""),
+		DBName:   utils.GetEnv("DB_NAME", "crypto_trading_db"),
 	}
 
 	// Debug: Print loaded configuration
@@ -39,7 +39,8 @@ func LoadConfigFromEnv() *Config {
 func Connect(config *Config) (*sql.DB, error) {
 	host := config.Host
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=Local&timeout=10s&readTimeout=10s&writeTimeout=10s",
+	// dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=Local&timeout=10s&readTimeout=10s&writeTimeout=10s",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=Local",
 		config.User,
 		config.Password,
 		host,
@@ -47,14 +48,7 @@ func Connect(config *Config) (*sql.DB, error) {
 		config.DBName,
 	)
 
-	// Debug: Print the actual DSN being used (without password)
-	dsnForLog := fmt.Sprintf("%s:***@tcp(%s:%s)/%s?parseTime=true&loc=Local",
-		config.User,
-		config.Host,
-		config.Port,
-		config.DBName,
-	)
-	fmt.Printf("DEBUG: Using DSN: %s\n", dsnForLog)
+	fmt.Printf("DEBUG: Using DSN: %s\n", dsn)
 
 	fmt.Printf("DEBUG: About to call sql.Open with DSN for host: %s\n", config.Host)
 
@@ -76,13 +70,4 @@ func Connect(config *Config) (*sql.DB, error) {
 	}
 
 	return db, nil
-}
-
-// getEnv gets an environment variable or returns a default value
-func getEnv(key, defaultValue string) string {
-	value := os.Getenv(key)
-	if value == "" {
-		return defaultValue
-	}
-	return value
 }
