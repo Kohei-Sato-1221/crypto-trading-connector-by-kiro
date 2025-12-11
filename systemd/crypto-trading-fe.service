@@ -7,8 +7,8 @@ Requires=crypto-trading-be.service
 
 [Service]
 Type=simple
-User=root
-Group=root
+User=pi
+Group=pi
 # WorkingDirectory=/home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-fe
 Environment=PATH=/opt/nodejs/bin:/usr/local/bin:/usr/bin:/bin
 EnvironmentFile=/home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-fe/.env

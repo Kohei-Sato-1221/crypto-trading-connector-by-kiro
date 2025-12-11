@@ -6,8 +6,8 @@ Wants=network.target
 
 [Service]
 Type=simple
-User=root
-Group=root
+User=pi
+Group=pi
 # WorkingDirectory=/home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-be
 EnvironmentFile=/home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-be/.env
 ExecStart=/bin/bash -c 'cd /home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-be && ./server'
