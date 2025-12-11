@@ -13,9 +13,7 @@ Group=pi
 Environment=PATH=/opt/nodejs/bin:/usr/local/bin:/usr/bin:/bin
 EnvironmentFile=/home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-fe/.env
 Environment=NODE_ENV=production
-ExecStartPre=/bin/bash -c 'cd /home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-fe && /opt/nodejs/bin/npm ci --only=production'
-ExecStartPre=/bin/bash -c 'cd /home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-fe && /opt/nodejs/bin/npm run build'
-ExecStart=/bin/bash -c 'cd /home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-fe && /opt/nodejs/bin/npm run preview -- --host 0.0.0.0 --port 3000'
+ExecStart=/bin/bash -c 'cd /home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-fe && npm run preview'
 ExecStop=/bin/kill -TERM $MAINPID
 Restart=always
 RestartSec=10
