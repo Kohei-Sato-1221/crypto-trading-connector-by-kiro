@@ -13,14 +13,14 @@ endif
 run:
 	@LOCAL_IP=$$(ipconfig getifaddr en0 2>/dev/null || hostname -I 2>/dev/null | awk '{print $$1}' || echo "10.221.1.199"); \
 	echo "Starting development server with API connection..."; \
-	echo "Backend API: http://$$LOCAL_IP:8080"; \
+	echo "Backend API: http://$$LOCAL_IP:8090"; \
 	echo "Frontend Local: http://localhost:3000"; \
 	echo "Frontend Network: http://$$LOCAL_IP:3000"; \
 	echo ""; \
 	echo "Note: Make sure backend is running (cd ../crypto-trading-connector-be && make run)"; \
 	echo "Note: Access from other devices: http://$$LOCAL_IP:3000/market"; \
 	echo ""; \
-	USE_MOCK_DATA=false API_BASE_URL=http://$$LOCAL_IP:8080 npm run dev -- --host 0.0.0.0
+	USE_MOCK_DATA=false API_BASE_URL=http://$$LOCAL_IP:8090 npm run dev -- --host 0.0.0.0
 
 ## run-mock: Start dev server with mock data
 run-mock:
@@ -98,7 +98,7 @@ help:
 	@echo ""
 	@echo "Environment variables:"
 	@echo "  USE_MOCK_DATA   - Use mock data (true) or API (false)"
-	@echo "  API_BASE_URL    - Backend API base URL (default: http://localhost:8080)"
+	@echo "  API_BASE_URL    - Backend API base URL (default: http://localhost:8090)"
 	@echo ""
 	@echo "Examples:"
 	@echo "  make run              # Start dev server with API connection"
