@@ -1,0 +1,46 @@
+[Unit]
+Description=Crypto Trading Connector Frontend
+Documentation=https://github.com/Kohei-Sato-1221/crypto-trading-connector-by-kiro
+After=network.target crypto-trading-be.service
+Wants=network.target
+Requires=crypto-trading-be.service
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-fe
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+Environment=NODE_ENV=production
+Environment=HOST=0.0.0.0
+Environment=PORT=3000
+Environment=API_BASE_URL=http://10.221.1.199:8090 
+Environment=FRONTEND_PORT=3000
+Environment=FRONTEND_HOST=0.0.0.0
+Environment=USE_MOCK_DATA=false
+ExecStartPre=/usr/bin/npm ci --only=production
+ExecStartPre=/usr/bin/npm run build
+ExecStart=/usr/bin/npm run preview -- --host 0.0.0.0 --port 3000
+ExecStop=/bin/kill -TERM $MAINPID
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=crypto-trading-fe
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/pi/workspace/crypto-trading-connector-by-kiro
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

@@ -76,34 +76,34 @@ curl:
 	fi
 	@if [ "$(a)" = "market" ]; then \
 		echo "Testing GET /api/v1/crypto/market"; \
-		curl -X GET "http://localhost:8080/api/v1/crypto/market" \
+		curl -X GET "http://localhost:8090/api/v1/crypto/market" \
 			-H "Content-Type: application/json" \
 			-w "\n\nHTTP Status: %{http_code}\n" \
-			| jq . || curl -X GET "http://localhost:8080/api/v1/crypto/market" -w "\n\nHTTP Status: %{http_code}\n"; \
+			| jq . || curl -X GET "http://localhost:8090/api/v1/crypto/market" -w "\n\nHTTP Status: %{http_code}\n"; \
 	elif [ "$(a)" = "bitcoin" ]; then \
 		echo "Testing GET /api/v1/crypto/bitcoin"; \
-		curl -X GET "http://localhost:8080/api/v1/crypto/bitcoin" \
+		curl -X GET "http://localhost:8090/api/v1/crypto/bitcoin" \
 			-H "Content-Type: application/json" \
 			-w "\n\nHTTP Status: %{http_code}\n" \
-			| jq . || curl -X GET "http://localhost:8080/api/v1/crypto/bitcoin" -w "\n\nHTTP Status: %{http_code}\n"; \
+			| jq . || curl -X GET "http://localhost:8090/api/v1/crypto/bitcoin" -w "\n\nHTTP Status: %{http_code}\n"; \
 	elif [ "$(a)" = "ethereum" ]; then \
 		echo "Testing GET /api/v1/crypto/ethereum"; \
-		curl -X GET "http://localhost:8080/api/v1/crypto/ethereum" \
+		curl -X GET "http://localhost:8090/api/v1/crypto/ethereum" \
 			-H "Content-Type: application/json" \
 			-w "\n\nHTTP Status: %{http_code}\n" \
-			| jq . || curl -X GET "http://localhost:8080/api/v1/crypto/ethereum" -w "\n\nHTTP Status: %{http_code}\n"; \
+			| jq . || curl -X GET "http://localhost:8090/api/v1/crypto/ethereum" -w "\n\nHTTP Status: %{http_code}\n"; \
 	elif [ "$(a)" = "bitcoin-chart" ]; then \
 		echo "Testing GET /api/v1/crypto/bitcoin/chart?period=7d"; \
-		curl -X GET "http://localhost:8080/api/v1/crypto/bitcoin/chart?period=7d" \
+		curl -X GET "http://localhost:8090/api/v1/crypto/bitcoin/chart?period=7d" \
 			-H "Content-Type: application/json" \
 			-w "\n\nHTTP Status: %{http_code}\n" \
-			| jq . || curl -X GET "http://localhost:8080/api/v1/crypto/bitcoin/chart?period=7d" -w "\n\nHTTP Status: %{http_code}\n"; \
+			| jq . || curl -X GET "http://localhost:8090/api/v1/crypto/bitcoin/chart?period=7d" -w "\n\nHTTP Status: %{http_code}\n"; \
 	elif [ "$(a)" = "ethereum-chart" ]; then \
 		echo "Testing GET /api/v1/crypto/ethereum/chart?period=7d"; \
-		curl -X GET "http://localhost:8080/api/v1/crypto/ethereum/chart?period=7d" \
+		curl -X GET "http://localhost:8090/api/v1/crypto/ethereum/chart?period=7d" \
 			-H "Content-Type: application/json" \
 			-w "\n\nHTTP Status: %{http_code}\n" \
-			| jq . || curl -X GET "http://localhost:8080/api/v1/crypto/ethereum/chart?period=7d" -w "\n\nHTTP Status: %{http_code}\n"; \
+			| jq . || curl -X GET "http://localhost:8090/api/v1/crypto/ethereum/chart?period=7d" -w "\n\nHTTP Status: %{http_code}\n"; \
 	else \
 		echo "Error: Unknown endpoint '$(a)'"; \
 		echo "Available endpoints: market, bitcoin, ethereum, bitcoin-chart, ethereum-chart"; \
