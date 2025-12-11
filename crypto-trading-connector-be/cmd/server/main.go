@@ -15,6 +15,12 @@ import (
 )
 
 func main() {
+	// Debug: Print all environment variables starting with DB_
+	log.Println("DEBUG: Environment variables:")
+	for _, env := range []string{"DB_HOST", "DB_PORT", "DB_USER", "DB_NAME", "SERVER_PORT"} {
+		log.Printf("  %s = %s", env, utils.GetEnv(env, "NOT_SET"))
+	}
+
 	// Load database configuration
 	dbConfig := database.LoadConfigFromEnv()
 
@@ -31,7 +37,7 @@ func main() {
 	bitflyerAPIURL := utils.GetEnv("BITFLYER_API_URL", "https://api.bitflyer.com")
 	bitflyerAPIKey := utils.GetEnv("BITFLYER_API_KEY", "xxxx")
 	bitflyerAPISecret := utils.GetEnv("BITFLYER_API_SECRET", "xxxx")
-	
+
 	var exchangeClient client.CryptoExchangeClient
 	if bitflyerAPIKey != "" && bitflyerAPISecret != "" {
 		exchangeClient = client.NewBitFlyerClientWithAuth(bitflyerAPIURL, bitflyerAPIKey, bitflyerAPISecret)
