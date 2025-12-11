@@ -10,11 +10,17 @@ import (
 	"github.com/crypto-trading-connector/backend/internal/service"
 	"github.com/crypto-trading-connector/backend/pkg/database"
 	"github.com/crypto-trading-connector/backend/utils"
+	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
+	// Load .env file
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: .env file not found, using environment variables")
+	}
+
 	// Debug: Print all environment variables starting with DB_
 	log.Println("DEBUG: Environment variables:")
 	for _, env := range []string{"DB_HOST", "DB_PORT", "DB_USER", "DB_NAME", "SERVER_PORT"} {

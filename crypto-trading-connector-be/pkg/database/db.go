@@ -37,7 +37,7 @@ func LoadConfigFromEnv() *Config {
 
 // Connect establishes a connection to the MySQL database
 func Connect(config *Config) (*sql.DB, error) {
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=Local",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=Local&timeout=10s&readTimeout=10s&writeTimeout=10s",
 		config.User,
 		config.Password,
 		config.Host,
@@ -45,14 +45,23 @@ func Connect(config *Config) (*sql.DB, error) {
 		config.DBName,
 	)
 
-	// Debug: Print dsn configuration
-	fmt.Printf("dsn:%s\n", dsn)
+	// Debug: Print the actual DSN being used (without password)
+	dsnForLog := fmt.Sprintf("%s:***@tcp(%s:%s)/%s?parseTime=true&loc=Local",
+		config.User,
+		config.Host,
+		config.Port,
+		config.DBName,
+	)
+	fmt.Printf("DEBUG: Using DSN: %s\n", dsnForLog)
+
+	fmt.Printf("DEBUG: About to call sql.Open with DSN for host: %s\n", config.Host)
 
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		errMsg := fmt.Errorf("failed to open database: %w", err)
-		return nil, errMsg
+		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
+
+	fmt.Printf("DEBUG: sql.Open succeeded, about to ping database\n")
 
 	// Set connection pool settings
 	db.SetMaxOpenConns(25)
