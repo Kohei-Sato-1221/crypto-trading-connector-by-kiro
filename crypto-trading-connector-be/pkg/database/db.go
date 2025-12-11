@@ -46,7 +46,7 @@ func Connect(config *Config) (*sql.DB, error) {
 	)
 
 	// Debug: Print dsn configuration
-	fmt.Println(dsn)
+	fmt.Printf("dsn:%s\n", dsn)
 
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
