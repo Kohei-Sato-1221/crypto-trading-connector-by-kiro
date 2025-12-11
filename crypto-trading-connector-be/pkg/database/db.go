@@ -45,9 +45,13 @@ func Connect(config *Config) (*sql.DB, error) {
 		config.DBName,
 	)
 
+	// Debug: Print dsn configuration
+	fmt.Println(dsn)
+
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open database: %w", err)
+		errMsg := fmt.Errorf("failed to open database: %w", err)
+		return nil, errMsg
 	}
 
 	// Set connection pool settings
