@@ -37,14 +37,9 @@ func LoadConfigFromEnv() *Config {
 
 // Connect establishes a connection to the MySQL database
 func Connect(config *Config) (*sql.DB, error) {
-	// Test with direct IP address to bypass any hostname issues
 	host := config.Host
-	if host == "crypto-trading-db.cva64ye44jkh.ap-northeast-1.rds.amazonaws.com" {
-		host = "52.197.72.98" // Direct IP from DNS resolution
-		fmt.Printf("DEBUG: Using direct IP address: %s\n", host)
-	}
 
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=Local&timeout=10s&readTimeout=10s&writeTimeout=10s&allowNativePasswords=true&tls=skip-verify",
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=Local&timeout=10s&readTimeout=10s&writeTimeout=10s",
 		config.User,
 		config.Password,
 		host,
