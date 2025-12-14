@@ -104,6 +104,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/trade-history/statistics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get trade statistics
+         * @description Returns aggregated trade statistics including total profit, execution count, and profit percentage
+         */
+        get: operations["getTradeStatistics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/trade-history/transactions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get trade transaction log
+         * @description Returns a paginated list of trade transactions with filtering options
+         */
+        get: operations["getTradeTransactions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/orders/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get current unfilled orders
+         * @description Returns current unfilled buy and sell orders from Bitflyer Lightning API, sorted by creation date (newest first) and limited to 10 orders per type
+         */
+        get: operations["getCurrentOrders"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -289,13 +349,179 @@ export interface components {
              */
             timestamp: number;
         };
+        TradeStatistics: {
+            /**
+             * Format: double
+             * @description Total profit in JPY (rounded to 1 decimal place)
+             * @example 115700
+             */
+            total_profit: number;
+            /**
+             * Format: double
+             * @description Profit percentage (rounded to 1 decimal place)
+             * @example 11.6
+             */
+            profit_percentage: number;
+            /**
+             * @description Total number of executed trades
+             * @example 12
+             */
+            execution_count: number;
+            /**
+             * @description Time period for the statistics
+             * @example all
+             * @enum {string}
+             */
+            period: "all" | "7days";
+        };
+        Transaction: {
+            /**
+             * @description Unique transaction identifier
+             * @example 1
+             */
+            id: string;
+            /**
+             * @description Cryptocurrency name
+             * @example Bitcoin
+             * @enum {string}
+             */
+            cryptocurrency: "Bitcoin" | "Ethereum";
+            /**
+             * Format: date-time
+             * @description Transaction timestamp
+             * @example 2024-12-10T14:30:00Z
+             */
+            timestamp: string;
+            /**
+             * Format: double
+             * @description Profit amount in JPY (rounded to 1 decimal place)
+             * @example 45000
+             */
+            profit: number;
+            /**
+             * @description Order type (always sell for completed trades)
+             * @example sell
+             * @enum {string}
+             */
+            order_type: "sell";
+            /**
+             * @description Sell order ID
+             * @example #BF-88219
+             */
+            order_id: string;
+            /**
+             * Format: double
+             * @description Buy price in JPY
+             * @example 5800000
+             */
+            buy_price: number;
+            /**
+             * Format: double
+             * @description Sell price in JPY
+             * @example 6100000
+             */
+            sell_price: number;
+            /**
+             * Format: double
+             * @description Amount of cryptocurrency traded
+             * @example 0.15
+             */
+            amount: number;
+            /**
+             * @description Related buy order ID
+             * @example #BF-88218
+             */
+            buy_order_id: string;
+        };
+        Pagination: {
+            /**
+             * @description Current page number
+             * @example 1
+             */
+            current_page: number;
+            /**
+             * @description Total number of pages
+             * @example 2
+             */
+            total_pages: number;
+            /**
+             * @description Total number of transactions
+             * @example 12
+             */
+            total_count: number;
+            /**
+             * @description Whether there are more pages available
+             * @example true
+             */
+            has_next: boolean;
+        };
+        TransactionLogResponse: {
+            /** @description Array of trade transactions */
+            transactions: components["schemas"]["Transaction"][];
+            pagination: components["schemas"]["Pagination"];
+        };
+        CurrentOrder: {
+            /**
+             * @description Unique order identifier from Bitflyer
+             * @example JRF20150707-050237-639234
+             */
+            id: string;
+            /**
+             * @description Order type
+             * @example buy
+             * @enum {string}
+             */
+            type: "buy" | "sell";
+            /**
+             * @description Trading pair
+             * @example BTC/JPY
+             * @enum {string}
+             */
+            pair: "BTC/JPY" | "ETH/JPY";
+            /**
+             * Format: double
+             * @description Order price in JPY
+             * @example 14000000
+             */
+            price: number;
+            /**
+             * Format: double
+             * @description Order amount in cryptocurrency units
+             * @example 0.001
+             */
+            amount: number;
+            /**
+             * Format: date-time
+             * @description Order creation timestamp in ISO 8601 format
+             * @example 2024-12-14T12:30:00Z
+             */
+            createdAt: string;
+        };
+        CurrentOrdersResponse: {
+            /** @description List of current buy orders, sorted by creation date (newest first) */
+            buyOrders: components["schemas"]["CurrentOrder"][];
+            /** @description List of current sell orders, sorted by creation date (newest first) */
+            sellOrders: components["schemas"]["CurrentOrder"][];
+            /**
+             * Format: int64
+             * @description Unix timestamp when the data was retrieved
+             * @example 1702555800
+             */
+            timestamp: number;
+            /**
+             * @description Trading pair filter that was applied (only present if pair parameter was specified)
+             * @example BTC_JPY
+             * @enum {string}
+             */
+            pair?: "BTC_JPY" | "ETH_JPY";
+        };
         ErrorResponse: {
             /**
              * @description Error type
              * @example INSUFFICIENT_BALANCE
              * @enum {string}
              */
-            error: "NOT_FOUND" | "BAD_REQUEST" | "INVALID_REQUEST" | "INVALID_AMOUNT" | "INVALID_PRICE" | "UNSUPPORTED_PAIR" | "INSUFFICIENT_BALANCE" | "UNAUTHORIZED" | "INTERNAL_ERROR" | "INTERNAL_SERVER_ERROR";
+            error: "NOT_FOUND" | "BAD_REQUEST" | "INVALID_REQUEST" | "INVALID_AMOUNT" | "INVALID_PRICE" | "UNSUPPORTED_PAIR" | "INSUFFICIENT_BALANCE" | "UNAUTHORIZED" | "INTERNAL_ERROR" | "INTERNAL_SERVER_ERROR" | "INVALID_FILTER" | "INVALID_PAGINATION";
             /**
              * @description Human-readable error message
              * @example Available balance is insufficient for this order
@@ -499,6 +725,148 @@ export interface operations {
                 };
             };
             /** @description Unauthorized */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getTradeStatistics: {
+        parameters: {
+            query?: {
+                /** @description Filter by cryptocurrency asset */
+                asset_filter?: "all" | "BTC" | "ETH";
+                /** @description Filter by time period */
+                time_filter?: "all" | "7days";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TradeStatistics"];
+                };
+            };
+            /** @description Invalid filter parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getTradeTransactions: {
+        parameters: {
+            query?: {
+                /** @description Filter by cryptocurrency asset */
+                asset_filter?: "all" | "BTC" | "ETH";
+                /** @description Filter by time period */
+                time_filter?: "all" | "7days";
+                /** @description Page number for pagination */
+                page?: number;
+                /** @description Number of transactions per page */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TransactionLogResponse"];
+                };
+            };
+            /** @description Invalid filter or pagination parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getCurrentOrders: {
+        parameters: {
+            query?: {
+                /** @description Trading pair filter. If omitted, returns orders for both pairs */
+                pair?: "BTC_JPY" | "ETH_JPY";
+                /** @description Maximum number of orders per type (buy/sell) to return */
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CurrentOrdersResponse"];
+                };
+            };
+            /** @description Invalid request parameters */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unauthorized - invalid or missing authentication */
             401: {
                 headers: {
                     [name: string]: unknown;

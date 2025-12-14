@@ -7,6 +7,7 @@ import PriceDisplay from '~/components/PriceDisplay.vue'
 import TimeFilterButtons from '~/components/TimeFilterButtons.vue'
 import PriceChart from '~/components/PriceChart.vue'
 import OrderForm from '~/components/OrderForm.vue'
+import CurrentOrders from '~/components/CurrentOrders.vue'
 import NavigationBar from '~/components/NavigationBar.vue'
 
 // Get pair from query parameter, default to BTC/JPY
@@ -152,6 +153,9 @@ const handleSubmitOrder = async (order: any) => {
         :available-balance="availableBalance"
         :on-submit-order="handleSubmitOrder"
       />
+
+      <!-- Current Orders -->
+      <CurrentOrders :selected-pair="selectedPair" />
     </div>
 
     <!-- Navigation Bar (full width) -->
