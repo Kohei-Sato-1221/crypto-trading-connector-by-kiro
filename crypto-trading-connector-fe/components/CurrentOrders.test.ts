@@ -9,6 +9,13 @@ vi.mock('~/composables/useCurrentOrders', () => ({
   useCurrentOrders: () => mockUseCurrentOrders()
 }))
 
+// Mock the formatDate composable
+vi.mock('~/composables/useFormatDate', () => ({
+  useFormatDate: () => ({
+    formatDate: ref((date: string) => new Date(date).toLocaleDateString())
+  })
+}))
+
 describe('CurrentOrders', () => {
   beforeEach(() => {
     vi.clearAllMocks()

@@ -3,6 +3,14 @@ import { nextTick } from 'vue'
 import * as fc from 'fast-check'
 import { useCurrentOrders } from './useCurrentOrders'
 
+// Mock useApi composable
+const mockGet = vi.fn()
+vi.mock('~/composables/useApi', () => ({
+  useApi: () => ({
+    get: mockGet
+  })
+}))
+
 // Mock timers
 vi.useFakeTimers()
 

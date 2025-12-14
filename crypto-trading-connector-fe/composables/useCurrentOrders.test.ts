@@ -2,6 +2,14 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { nextTick } from 'vue'
 import { useCurrentOrders } from './useCurrentOrders'
 
+// Mock useApi composable
+const mockGet = vi.fn()
+vi.mock('~/composables/useApi', () => ({
+  useApi: () => ({
+    get: mockGet
+  })
+}))
+
 // Mock timers
 vi.useFakeTimers()
 
@@ -9,6 +17,31 @@ describe('useCurrentOrders', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.clearAllTimers()
+    
+    // Mock successful API response
+    mockGet.mockResolvedValue({
+      buyOrders: [
+        {
+          id: 'buy-1',
+          type: 'buy' as const,
+          pair: 'BTC/JPY' as const,
+          price: 14000000,
+          amount: 0.001,
+          createdAt: '2024-12-14T12:30:00Z'
+        }
+      ],
+      sellOrders: [
+        {
+          id: 'sell-1',
+          type: 'sell' as const,
+          pair: 'BTC/JPY' as const,
+          price: 14100000,
+          amount: 0.002,
+          createdAt: '2024-12-14T12:25:00Z'
+        }
+      ],
+      timestamp: 1702555800
+    })
     
     // Mock document.hidden
     Object.defineProperty(document, 'hidden', {
