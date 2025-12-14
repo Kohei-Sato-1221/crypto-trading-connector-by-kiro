@@ -2,6 +2,7 @@ package service
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/crypto-trading-connector/backend/internal/client"
@@ -11,8 +12,8 @@ import (
 
 // MockOrderRepository is a mock implementation of OrderRepository for testing
 type MockOrderRepository struct {
-	SaveOrderFunc     func(order *model.BuyOrder) error
-	GetOrderByIDFunc  func(orderID string) (*model.BuyOrder, error)
+	SaveOrderFunc    func(order *model.BuyOrder) error
+	GetOrderByIDFunc func(orderID string) (*model.BuyOrder, error)
 }
 
 func (m *MockOrderRepository) SaveOrder(order *model.BuyOrder) error {
@@ -361,5 +362,190 @@ func TestOrderService_ValidateOrderRequest(t *testing.T) {
 				t.Errorf("validateOrderRequest() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
+	}
+}
+
+func TestOrderService_GetCurrentOrders_Success(t *testing.T) {
+	mockClient := &client.MockBitFlyerClient{
+		GetChildOrdersFunc: func(productCode string, childOrderState string) ([]model.BitflyerChildOrder, error) {
+			return []model.BitflyerChildOrder{
+				{
+					ID:                     1,
+					ChildOrderID:           "BUY_ORDER_1",
+					ProductCode:            "BTC_JPY",
+					Side:                   "BUY",
+					ChildOrderType:         "LIMIT",
+					Price:                  14000000,
+					Size:                   0.001,
+					ChildOrderState:        "ACTIVE",
+					ChildOrderDate:         "2024-12-14T12:00:00.000",
+					ChildOrderAcceptanceID: "ACCEPTANCE_1",
+					OutstandingSize:        0.001,
+				},
+				{
+					ID:                     2,
+					ChildOrderID:           "SELL_ORDER_1",
+					ProductCode:            "BTC_JPY",
+					Side:                   "SELL",
+					ChildOrderType:         "LIMIT",
+					Price:                  15000000,
+					Size:                   0.001,
+					ChildOrderState:        "ACTIVE",
+					ChildOrderDate:         "2024-12-14T12:30:00.000",
+					ChildOrderAcceptanceID: "ACCEPTANCE_2",
+					OutstandingSize:        0.001,
+				},
+			}, nil
+		},
+	}
+
+	mockRepo := &MockOrderRepository{}
+	service := NewOrderService(mockClient, mockRepo)
+
+	response, err := service.GetCurrentOrders("", 10)
+
+	if err != nil {
+		t.Errorf("expected no error, got %v", err)
+	}
+	if response == nil {
+		t.Fatal("expected response, got nil")
+	}
+	if len(response.BuyOrders) != 1 {
+		t.Errorf("expected 1 buy order, got %d", len(response.BuyOrders))
+	}
+	if len(response.SellOrders) != 1 {
+		t.Errorf("expected 1 sell order, got %d", len(response.SellOrders))
+	}
+	if response.BuyOrders[0].Type != "buy" {
+		t.Errorf("expected buy order type 'buy', got %s", response.BuyOrders[0].Type)
+	}
+	if response.SellOrders[0].Type != "sell" {
+		t.Errorf("expected sell order type 'sell', got %s", response.SellOrders[0].Type)
+	}
+}
+
+func TestOrderService_GetCurrentOrders_WithPairFilter(t *testing.T) {
+	mockClient := &client.MockBitFlyerClient{
+		GetChildOrdersFunc: func(productCode string, childOrderState string) ([]model.BitflyerChildOrder, error) {
+			if productCode != "BTC_JPY" {
+				t.Errorf("expected product code BTC_JPY, got %s", productCode)
+			}
+			if childOrderState != "ACTIVE" {
+				t.Errorf("expected child order state ACTIVE, got %s", childOrderState)
+			}
+			return []model.BitflyerChildOrder{}, nil
+		},
+	}
+
+	mockRepo := &MockOrderRepository{}
+	service := NewOrderService(mockClient, mockRepo)
+
+	response, err := service.GetCurrentOrders("BTC/JPY", 10)
+
+	if err != nil {
+		t.Errorf("expected no error, got %v", err)
+	}
+	if response == nil {
+		t.Fatal("expected response, got nil")
+	}
+	if response.Pair == nil || *response.Pair != "BTC/JPY" {
+		t.Errorf("expected pair BTC/JPY in response, got %v", response.Pair)
+	}
+}
+
+func TestOrderService_GetCurrentOrders_WithLimit(t *testing.T) {
+	// Create more orders than the limit
+	orders := make([]model.BitflyerChildOrder, 15)
+	for i := 0; i < 15; i++ {
+		orders[i] = model.BitflyerChildOrder{
+			ID:                     int64(i + 1),
+			ChildOrderID:           fmt.Sprintf("ORDER_%d", i+1),
+			ProductCode:            "BTC_JPY",
+			Side:                   "BUY",
+			ChildOrderType:         "LIMIT",
+			Price:                  14000000,
+			Size:                   0.001,
+			ChildOrderState:        "ACTIVE",
+			ChildOrderDate:         "2024-12-14T12:00:00.000",
+			ChildOrderAcceptanceID: fmt.Sprintf("ACCEPTANCE_%d", i+1),
+			OutstandingSize:        0.001,
+		}
+	}
+
+	mockClient := &client.MockBitFlyerClient{
+		GetChildOrdersFunc: func(productCode string, childOrderState string) ([]model.BitflyerChildOrder, error) {
+			return orders, nil
+		},
+	}
+
+	mockRepo := &MockOrderRepository{}
+	service := NewOrderService(mockClient, mockRepo)
+
+	response, err := service.GetCurrentOrders("", 5)
+
+	if err != nil {
+		t.Errorf("expected no error, got %v", err)
+	}
+	if response == nil {
+		t.Fatal("expected response, got nil")
+	}
+	if len(response.BuyOrders) != 5 {
+		t.Errorf("expected 5 buy orders due to limit, got %d", len(response.BuyOrders))
+	}
+}
+
+func TestOrderService_GetCurrentOrders_ExchangeError(t *testing.T) {
+	mockClient := &client.MockBitFlyerClient{
+		GetChildOrdersFunc: func(productCode string, childOrderState string) ([]model.BitflyerChildOrder, error) {
+			return nil, errors.New("exchange API error")
+		},
+	}
+
+	mockRepo := &MockOrderRepository{}
+	service := NewOrderService(mockClient, mockRepo)
+
+	response, err := service.GetCurrentOrders("", 10)
+
+	if err == nil {
+		t.Error("expected error from exchange API, got nil")
+	}
+	if response != nil {
+		t.Errorf("expected nil response, got %v", response)
+	}
+}
+
+func TestOrderService_ConvertToCurrentOrder(t *testing.T) {
+	service := &OrderServiceImpl{}
+
+	bitflyerOrder := &model.BitflyerChildOrder{
+		ID:                     1,
+		ChildOrderID:           "TEST_ORDER_123",
+		ProductCode:            "BTC_JPY",
+		Side:                   "BUY",
+		ChildOrderType:         "LIMIT",
+		Price:                  14000000,
+		Size:                   0.001,
+		ChildOrderState:        "ACTIVE",
+		ChildOrderDate:         "2024-12-14T12:00:00.000",
+		ChildOrderAcceptanceID: "ACCEPTANCE_123",
+		OutstandingSize:        0.001,
+	}
+
+	currentOrder := service.convertToCurrentOrder(bitflyerOrder)
+
+	if currentOrder.ID != "TEST_ORDER_123" {
+		t.Errorf("expected ID TEST_ORDER_123, got %s", currentOrder.ID)
+	}
+	if currentOrder.Type != "buy" {
+		t.Errorf("expected type buy, got %s", currentOrder.Type)
+	}
+	if currentOrder.Pair != "BTC/JPY" {
+		t.Errorf("expected pair BTC/JPY, got %s", currentOrder.Pair)
+	}
+	if currentOrder.Price != 14000000 {
+		t.Errorf("expected price 14000000, got %f", currentOrder.Price)
+	}
+	if currentOrder.Amount != 0.001 {
+		t.Errorf("expected amount 0.001, got %f", currentOrder.Amount)
 	}
 }

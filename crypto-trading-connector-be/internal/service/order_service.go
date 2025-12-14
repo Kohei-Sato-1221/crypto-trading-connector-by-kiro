@@ -2,7 +2,9 @@ package service
 
 import (
 	"fmt"
+	"sort"
 	"strings"
+	"time"
 
 	"github.com/crypto-trading-connector/backend/internal/client"
 	"github.com/crypto-trading-connector/backend/internal/generated"
@@ -16,6 +18,7 @@ import (
 type OrderService interface {
 	CreateOrder(req *generated.CreateOrderRequest) (*generated.Order, error)
 	GetBalance() (*generated.Balance, error)
+	GetCurrentOrders(pair string, limit int) (*model.CurrentOrdersResponse, error)
 }
 
 // OrderServiceImpl implements OrderService
@@ -80,7 +83,7 @@ func (s *OrderServiceImpl) CreateOrder(req *generated.CreateOrderRequest) (*gene
 		Size:        req.Amount,
 		Exchange:    "bitflyer",
 		Status:      "UNFILLED", // UNFILLED status
-		Strategy:    99, // 99: not recorded
+		Strategy:    99,         // 99: not recorded
 		Remarks:     nil,
 	}
 
@@ -157,4 +160,92 @@ func (s *OrderServiceImpl) validateOrderRequest(req *generated.CreateOrderReques
 	}
 
 	return nil
+}
+
+// GetCurrentOrders retrieves current orders from the exchange
+func (s *OrderServiceImpl) GetCurrentOrders(pair string, limit int) (*model.CurrentOrdersResponse, error) {
+	// Default limit to 10 if not specified or invalid
+	if limit <= 0 {
+		limit = 10
+	}
+
+	// Convert pair format if specified (BTC/JPY -> BTC_JPY)
+	var productCode string
+	if pair != "" {
+		productCode = strings.ReplaceAll(pair, "/", "_")
+	}
+
+	// Get active orders from exchange
+	orders, err := s.exchangeClient.GetChildOrders(productCode, "ACTIVE")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get child orders from exchange: %w", err)
+	}
+
+	// Convert to CurrentOrder format and separate by type
+	var buyOrders []model.CurrentOrder
+	var sellOrders []model.CurrentOrder
+
+	for _, order := range orders {
+		currentOrder := s.convertToCurrentOrder(&order)
+
+		if order.Side == "BUY" {
+			buyOrders = append(buyOrders, currentOrder)
+		} else if order.Side == "SELL" {
+			sellOrders = append(sellOrders, currentOrder)
+		}
+	}
+
+	// Sort by creation date descending (newest first)
+	sort.Slice(buyOrders, func(i, j int) bool {
+		return buyOrders[i].CreatedAt > buyOrders[j].CreatedAt
+	})
+	sort.Slice(sellOrders, func(i, j int) bool {
+		return sellOrders[i].CreatedAt > sellOrders[j].CreatedAt
+	})
+
+	// Limit results
+	if len(buyOrders) > limit {
+		buyOrders = buyOrders[:limit]
+	}
+	if len(sellOrders) > limit {
+		sellOrders = sellOrders[:limit]
+	}
+
+	// Create response
+	response := &model.CurrentOrdersResponse{
+		BuyOrders:  buyOrders,
+		SellOrders: sellOrders,
+		Timestamp:  time.Now().Unix(),
+	}
+
+	// Add pair filter if specified
+	if pair != "" {
+		response.Pair = &pair
+	}
+
+	return response, nil
+}
+
+// convertToCurrentOrder converts BitflyerChildOrder to CurrentOrder
+func (s *OrderServiceImpl) convertToCurrentOrder(order *model.BitflyerChildOrder) model.CurrentOrder {
+	// Convert product code format (BTC_JPY -> BTC/JPY)
+	pair := strings.ReplaceAll(order.ProductCode, "_", "/")
+
+	// Convert side to lowercase
+	orderType := strings.ToLower(order.Side)
+
+	// Parse and format creation date to ISO 8601
+	createdAt := order.ChildOrderDate
+	if parsedTime, err := time.Parse("2006-01-02T15:04:05.999", order.ChildOrderDate); err == nil {
+		createdAt = parsedTime.Format(time.RFC3339)
+	}
+
+	return model.CurrentOrder{
+		ID:        order.ChildOrderID,
+		Type:      orderType,
+		Pair:      pair,
+		Price:     order.Price,
+		Amount:    order.Size,
+		CreatedAt: createdAt,
+	}
 }

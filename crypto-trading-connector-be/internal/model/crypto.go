@@ -64,3 +64,41 @@ type BitFlyerOrderRequest struct {
 type BitFlyerOrderResponse struct {
 	ChildOrderAcceptanceID string `json:"child_order_acceptance_id"`
 }
+
+// BitflyerChildOrder represents a child order response from bitFlyer API
+type BitflyerChildOrder struct {
+	ID                     int64   `json:"id"`
+	ChildOrderID           string  `json:"child_order_id"`
+	ProductCode            string  `json:"product_code"`
+	Side                   string  `json:"side"`
+	ChildOrderType         string  `json:"child_order_type"`
+	Price                  float64 `json:"price"`
+	AveragePrice           float64 `json:"average_price"`
+	Size                   float64 `json:"size"`
+	ChildOrderState        string  `json:"child_order_state"`
+	ExpireDate             string  `json:"expire_date"`
+	ChildOrderDate         string  `json:"child_order_date"`
+	ChildOrderAcceptanceID string  `json:"child_order_acceptance_id"`
+	OutstandingSize        float64 `json:"outstanding_size"`
+	CancelSize             float64 `json:"cancel_size"`
+	ExecutedSize           float64 `json:"executed_size"`
+	TotalCommission        float64 `json:"total_commission"`
+}
+
+// CurrentOrder represents a current order for API response
+type CurrentOrder struct {
+	ID        string  `json:"id"`
+	Type      string  `json:"type"` // "buy" or "sell"
+	Pair      string  `json:"pair"` // "BTC/JPY" or "ETH/JPY"
+	Price     float64 `json:"price"`
+	Amount    float64 `json:"amount"`
+	CreatedAt string  `json:"createdAt"` // ISO 8601 format
+}
+
+// CurrentOrdersResponse represents the API response for current orders
+type CurrentOrdersResponse struct {
+	BuyOrders  []CurrentOrder `json:"buyOrders"`
+	SellOrders []CurrentOrder `json:"sellOrders"`
+	Timestamp  int64          `json:"timestamp"`
+	Pair       *string        `json:"pair,omitempty"` // Only present if pair filter was specified
+}

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/crypto-trading-connector/backend/internal/generated"
@@ -50,6 +51,50 @@ func (h *OrderHandler) GetBalance(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, balance)
+}
+
+// GetCurrentOrders handles GET /api/v1/orders/current
+func (h *OrderHandler) GetCurrentOrders(c echo.Context) error {
+	// Parse query parameters
+	pair := c.QueryParam("pair")
+	limitStr := c.QueryParam("limit")
+
+	// Default limit to 10
+	limit := 10
+	if limitStr != "" {
+		if parsedLimit, err := strconv.Atoi(limitStr); err == nil && parsedLimit > 0 {
+			limit = parsedLimit
+		}
+	}
+
+	// Validate pair parameter if provided
+	if pair != "" && pair != "BTC_JPY" && pair != "ETH_JPY" {
+		return handleError(c, http.StatusBadRequest, generated.INVALIDREQUEST, "Invalid pair parameter. Supported pairs: BTC_JPY, ETH_JPY")
+	}
+
+	// Get current orders from service
+	orders, err := h.orderService.GetCurrentOrders(pair, limit)
+	if err != nil {
+		return h.handleCurrentOrdersError(c, err)
+	}
+
+	return c.JSON(http.StatusOK, orders)
+}
+
+// handleCurrentOrdersError handles errors from GetCurrentOrders
+func (h *OrderHandler) handleCurrentOrdersError(c echo.Context, err error) error {
+	errMsg := err.Error()
+
+	// Check for specific error types
+	if strings.Contains(errMsg, "authentication") || strings.Contains(errMsg, "unauthorized") {
+		return handleError(c, http.StatusUnauthorized, generated.UNAUTHORIZED, "Authentication required")
+	}
+	if strings.Contains(errMsg, "invalid") {
+		return handleError(c, http.StatusBadRequest, generated.INVALIDREQUEST, errMsg)
+	}
+
+	// Default to internal server error
+	return handleError(c, http.StatusInternalServerError, generated.INTERNALSERVERERROR, "Failed to retrieve current orders")
 }
 
 // validateCreateOrderRequest validates the create order request

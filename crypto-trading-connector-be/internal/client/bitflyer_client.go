@@ -180,6 +180,52 @@ func (c *BitFlyerClient) createSignature(text string) string {
 	return hex.EncodeToString(mac.Sum(nil))
 }
 
+// GetChildOrders retrieves child orders (current orders) from bitFlyer API
+func (c *BitFlyerClient) GetChildOrders(productCode string, childOrderState string) ([]model.BitflyerChildOrder, error) {
+	path := "/v1/me/getchildorders"
+	method := "GET"
+	body := ""
+
+	// Add query parameters if provided
+	if productCode != "" || childOrderState != "" {
+		path += "?"
+		params := []string{}
+		if productCode != "" {
+			params = append(params, fmt.Sprintf("product_code=%s", productCode))
+		}
+		if childOrderState != "" {
+			params = append(params, fmt.Sprintf("child_order_state=%s", childOrderState))
+		}
+		path += fmt.Sprintf("%s", params[0])
+		if len(params) > 1 {
+			path += "&" + params[1]
+		}
+	}
+
+	req, err := c.createAuthenticatedRequest(method, path, body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to call bitFlyer API: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		respBody, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("bitFlyer API returned status %d: %s", resp.StatusCode, string(respBody))
+	}
+
+	var orders []model.BitflyerChildOrder
+	if err := json.NewDecoder(resp.Body).Decode(&orders); err != nil {
+		return nil, fmt.Errorf("failed to decode child orders response: %w", err)
+	}
+
+	return orders, nil
+}
+
 // RoundPrice rounds the price according to the product code
 // BTC_JPY: rounds to nearest million (1,000,000)
 // ETH_JPY: rounds to nearest ten thousand (10,000)

@@ -14,4 +14,9 @@ type CryptoExchangeClient interface {
 
 	// SendOrder submits a new order to the exchange
 	SendOrder(req *model.BitFlyerOrderRequest) (*model.BitFlyerOrderResponse, error)
+
+	// GetChildOrders retrieves current orders (child orders) from the exchange
+	// productCode: Trading pair identifier (e.g., "BTC_JPY", "ETH_JPY"), empty for all pairs
+	// childOrderState: Order state filter (e.g., "ACTIVE"), empty for all states
+	GetChildOrders(productCode string, childOrderState string) ([]model.BitflyerChildOrder, error)
 }

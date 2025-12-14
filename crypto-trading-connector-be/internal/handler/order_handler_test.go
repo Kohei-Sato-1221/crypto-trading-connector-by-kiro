@@ -7,8 +7,10 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/crypto-trading-connector/backend/internal/generated"
+	"github.com/crypto-trading-connector/backend/internal/model"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	openapi_types "github.com/oapi-codegen/runtime/types"
@@ -16,8 +18,9 @@ import (
 
 // MockOrderService is a mock implementation of OrderService for testing
 type MockOrderService struct {
-	CreateOrderFunc func(req *generated.CreateOrderRequest) (*generated.Order, error)
-	GetBalanceFunc  func() (*generated.Balance, error)
+	CreateOrderFunc      func(req *generated.CreateOrderRequest) (*generated.Order, error)
+	GetBalanceFunc       func() (*generated.Balance, error)
+	GetCurrentOrdersFunc func(pair string, limit int) (*model.CurrentOrdersResponse, error)
 }
 
 func (m *MockOrderService) CreateOrder(req *generated.CreateOrderRequest) (*generated.Order, error) {
@@ -30,6 +33,13 @@ func (m *MockOrderService) CreateOrder(req *generated.CreateOrderRequest) (*gene
 func (m *MockOrderService) GetBalance() (*generated.Balance, error) {
 	if m.GetBalanceFunc != nil {
 		return m.GetBalanceFunc()
+	}
+	return nil, errors.New("not implemented")
+}
+
+func (m *MockOrderService) GetCurrentOrders(pair string, limit int) (*model.CurrentOrdersResponse, error) {
+	if m.GetCurrentOrdersFunc != nil {
+		return m.GetCurrentOrdersFunc(pair, limit)
 	}
 	return nil, errors.New("not implemented")
 }
@@ -261,4 +271,157 @@ func TestValidateCreateOrderRequest(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestOrderHandler_GetCurrentOrders_Success(t *testing.T) {
+	mockService := &MockOrderService{
+		GetCurrentOrdersFunc: func(pair string, limit int) (*model.CurrentOrdersResponse, error) {
+			return &model.CurrentOrdersResponse{
+				BuyOrders: []model.CurrentOrder{
+					{
+						ID:        "buy-order-1",
+						Type:      "buy",
+						Pair:      "BTC/JPY",
+						Price:     14000000,
+						Amount:    0.001,
+						CreatedAt: time.Now().Format(time.RFC3339),
+					},
+				},
+				SellOrders: []model.CurrentOrder{
+					{
+						ID:        "sell-order-1",
+						Type:      "sell",
+						Pair:      "BTC/JPY",
+						Price:     15000000,
+						Amount:    0.001,
+						CreatedAt: time.Now().Format(time.RFC3339),
+					},
+				},
+				Timestamp: time.Now().Unix(),
+			}, nil
+		},
+	}
+
+	handler := NewOrderHandler(mockService)
+	e := echo.New()
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/orders/current", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	err := handler.GetCurrentOrders(c)
+
+	if err != nil {
+		t.Errorf("expected no error, got %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected status 200, got %d", rec.Code)
+	}
+
+	var response model.CurrentOrdersResponse
+	if err := json.Unmarshal(rec.Body.Bytes(), &response); err != nil {
+		t.Errorf("failed to unmarshal response: %v", err)
+	}
+	if len(response.BuyOrders) != 1 {
+		t.Errorf("expected 1 buy order, got %d", len(response.BuyOrders))
+	}
+	if len(response.SellOrders) != 1 {
+		t.Errorf("expected 1 sell order, got %d", len(response.SellOrders))
+	}
+}
+
+func TestOrderHandler_GetCurrentOrders_WithPairFilter(t *testing.T) {
+	mockService := &MockOrderService{
+		GetCurrentOrdersFunc: func(pair string, limit int) (*model.CurrentOrdersResponse, error) {
+			if pair != "BTC_JPY" {
+				t.Errorf("expected pair BTC_JPY, got %s", pair)
+			}
+			return &model.CurrentOrdersResponse{
+				BuyOrders:  []model.CurrentOrder{},
+				SellOrders: []model.CurrentOrder{},
+				Timestamp:  time.Now().Unix(),
+				Pair:       &pair,
+			}, nil
+		},
+	}
+
+	handler := NewOrderHandler(mockService)
+	e := echo.New()
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/orders/current?pair=BTC_JPY", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	err := handler.GetCurrentOrders(c)
+
+	if err != nil {
+		t.Errorf("expected no error, got %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected status 200, got %d", rec.Code)
+	}
+}
+
+func TestOrderHandler_GetCurrentOrders_WithLimit(t *testing.T) {
+	mockService := &MockOrderService{
+		GetCurrentOrdersFunc: func(pair string, limit int) (*model.CurrentOrdersResponse, error) {
+			if limit != 5 {
+				t.Errorf("expected limit 5, got %d", limit)
+			}
+			return &model.CurrentOrdersResponse{
+				BuyOrders:  []model.CurrentOrder{},
+				SellOrders: []model.CurrentOrder{},
+				Timestamp:  time.Now().Unix(),
+			}, nil
+		},
+	}
+
+	handler := NewOrderHandler(mockService)
+	e := echo.New()
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/orders/current?limit=5", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	err := handler.GetCurrentOrders(c)
+
+	if err != nil {
+		t.Errorf("expected no error, got %v", err)
+	}
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected status 200, got %d", rec.Code)
+	}
+}
+
+func TestOrderHandler_GetCurrentOrders_InvalidPair(t *testing.T) {
+	mockService := &MockOrderService{}
+	handler := NewOrderHandler(mockService)
+	e := echo.New()
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/orders/current?pair=INVALID_PAIR", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	_ = handler.GetCurrentOrders(c)
+
+	// Invalid pair error would be caught by Echo's middleware
+}
+
+func TestOrderHandler_GetCurrentOrders_ServiceError(t *testing.T) {
+	mockService := &MockOrderService{
+		GetCurrentOrdersFunc: func(pair string, limit int) (*model.CurrentOrdersResponse, error) {
+			return nil, errors.New("exchange API error")
+		},
+	}
+
+	handler := NewOrderHandler(mockService)
+	e := echo.New()
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/orders/current", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+
+	_ = handler.GetCurrentOrders(c)
+
+	// Service error would be caught by Echo's middleware
 }

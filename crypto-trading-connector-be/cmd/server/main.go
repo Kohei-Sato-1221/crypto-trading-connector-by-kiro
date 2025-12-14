@@ -95,6 +95,7 @@ func main() {
 
 		// Order routes
 		api.POST("/orders", orderHandler.CreateOrder)
+		api.GET("/orders/current", orderHandler.GetCurrentOrders)
 		api.GET("/balance", orderHandler.GetBalance)
 
 		// Trade History routes

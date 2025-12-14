@@ -1,4 +1,4 @@
-.PHONY: run test fmt help e2e-test unit-test get-balance buy-order
+.PHONY: run test fmt help e2e-test unit-test get-balance buy-order get-current-orders
 
 # Default target
 .DEFAULT_GOAL := help
@@ -70,6 +70,7 @@ curl:
 		echo "  ethereum       - GET /api/v1/crypto/ethereum"; \
 		echo "  bitcoin-chart  - GET /api/v1/crypto/bitcoin/chart?period=7d"; \
 		echo "  ethereum-chart - GET /api/v1/crypto/ethereum/chart?period=7d"; \
+		echo "  current-orders - GET /api/v1/orders/current"; \
 		echo ""; \
 		echo "Example: make curl a=market"; \
 		exit 1; \
@@ -104,9 +105,15 @@ curl:
 			-H "Content-Type: application/json" \
 			-w "\n\nHTTP Status: %{http_code}\n" \
 			| jq . || curl -X GET "http://localhost:8090/api/v1/crypto/ethereum/chart?period=7d" -w "\n\nHTTP Status: %{http_code}\n"; \
+	elif [ "$(a)" = "current-orders" ]; then \
+		echo "Testing GET /api/v1/orders/current"; \
+		curl -X GET "http://localhost:8090/api/v1/orders/current" \
+			-H "Content-Type: application/json" \
+			-w "\n\nHTTP Status: %{http_code}\n" \
+			| jq . || curl -X GET "http://localhost:8090/api/v1/orders/current" -w "\n\nHTTP Status: %{http_code}\n"; \
 	else \
 		echo "Error: Unknown endpoint '$(a)'"; \
-		echo "Available endpoints: market, bitcoin, ethereum, bitcoin-chart, ethereum-chart"; \
+		echo "Available endpoints: market, bitcoin, ethereum, bitcoin-chart, ethereum-chart, current-orders"; \
 		exit 1; \
 	fi
 
@@ -128,6 +135,11 @@ buy-order:
 	@echo "Placing buy orders for BTC and ETH..."
 	@go run cmd/buy-order/main.go
 
+## get-current-orders: Fetch current orders from bitFlyer API (shows buy/sell orders)
+get-current-orders:
+	@echo "Fetching current orders from bitFlyer API..."
+	@go run cmd/get-current-orders/main.go
+
 ## help: Show this help message
 help:
 	@echo "Usage: make [target]"
@@ -141,9 +153,11 @@ help:
 	@echo "  ethereum        - GET /api/v1/crypto/ethereum"
 	@echo "  bitcoin-chart   - GET /api/v1/crypto/bitcoin/chart?period=7d"
 	@echo "  ethereum-chart  - GET /api/v1/crypto/ethereum/chart?period=7d"
+	@echo "  current-orders  - GET /api/v1/orders/current"
 	@echo ""
 	@echo "bitFlyer API commands:"
-	@echo "  make get-balance - Fetch JPY balance from bitFlyer API"
-	@echo "  make buy-order   - Place buy orders for BTC and ETH at 97% of current price"
+	@echo "  make get-balance        - Fetch JPY balance from bitFlyer API"
+	@echo "  make buy-order          - Place buy orders for BTC and ETH at 97% of current price"
+	@echo "  make get-current-orders - Fetch current orders from bitFlyer API (shows buy/sell orders)"
 	@echo ""
 	@echo "Example: make curl a=market"
