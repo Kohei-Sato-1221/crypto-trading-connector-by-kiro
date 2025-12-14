@@ -4,7 +4,8 @@
  */
 export const useApi = () => {
   const config = useRuntimeConfig()
-  const baseURL = config.public.apiBaseUrl
+  // Trim baseURL to remove any accidental whitespace
+  const baseURL = config.public.apiBaseUrl.trim()
 
   /**
    * Build full API URL with consistent /api/v1 prefix
