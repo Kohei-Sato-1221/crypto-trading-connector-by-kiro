@@ -55,8 +55,10 @@ pkg/database/          → DB接続
 
 ## 環境変数（.envファイル）
 
-DB接続(`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`)、`SERVER_PORT`、`CORS_ALLOWED_ORIGINS`、`BITFLYER_API_URL`、bitFlyer認証キー
+### DB接続（URL方式）
+- `MYSQL_URL` — MySQL接続URL（例: `user:pass@tcp(host:port)/dbname?parseTime=true&loc=Local`）
+- `POSTGRES_URL` — PostgreSQL接続URL（例: `postgresql://user:pass@host:port/dbname?sslmode=require`）
+- 両方設定した場合はPostgreSQLが優先。両方空の場合はpanic。
 
-### PostgreSQL対応の環境変数
-- `DB_TYPE` — `mysql`（デフォルト）または `postgres` を指定
-- `DB_DSN` — PostgreSQL接続文字列（例: `postgres://user:pass@host:5432/dbname?sslmode=require`）。`DB_TYPE=postgres`時に使用
+### その他
+`SERVER_PORT`、`CORS_ALLOWED_ORIGINS`、`BITFLYER_API_URL`、bitFlyer認証キー

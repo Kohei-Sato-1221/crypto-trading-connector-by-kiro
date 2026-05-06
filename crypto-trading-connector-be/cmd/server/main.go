@@ -21,23 +21,17 @@ func main() {
 		log.Println("Warning: .env file not found, using environment variables")
 	}
 
-	// Debug: Print all environment variables starting with DB_
-	log.Println("DEBUG: Environment variables:")
-	for _, env := range []string{"DB_HOST", "DB_PORT", "DB_USER", "DB_NAME", "SERVER_PORT"} {
-		log.Printf("  %s = %s", env, utils.GetEnv(env, "NOT_SET"))
-	}
-
 	// Load database configuration
 	dbConfig := database.LoadConfigFromEnv()
 
 	// Connect to database
-	db, err := database.ConnectByType(dbConfig)
+	db, err := database.Connect(dbConfig)
 	if err != nil {
 		log.Fatalf("Failed to connect to database: %v", err)
 	}
 	defer db.Close()
 
-	log.Printf("Successfully connected to database (DB_TYPE=%s)", dbConfig.DBType)
+	log.Printf("Successfully connected to database (%s)", dbConfig.DBType)
 
 	// Initialize exchange client (bitFlyer)
 	bitflyerAPIURL := utils.GetEnv("BITFLYER_API_URL", "https://api.bitflyer.com")

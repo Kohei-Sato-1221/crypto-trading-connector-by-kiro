@@ -9,16 +9,18 @@ MySQL (AWS RDS) で動作しているバックエンドを、Supabase (PostgreSQ
 ### 切り替え方式
 
 ```
-環境変数 DB_TYPE
-  ├── "mysql"    → Connect()           → MySQL用リポジトリ
-  └── "postgres" → ConnectPostgres()   → PostgreSQL用リポジトリ
+環境変数による自動判定:
+  POSTGRES_URL が設定されている → PostgreSQL を使用
+  MYSQL_URL のみ設定されている  → MySQL を使用
+  両方設定されている            → PostgreSQL を優先
+  両方空                       → panic（起動失敗）
 ```
 
 ### 変更対象レイヤー
 
 ```
-cmd/server/main.go         → DB_TYPE による分岐追加
-pkg/database/db.go         → ConnectPostgres(), ConnectByType() 追加
+cmd/server/main.go         → Config.DBType による分岐
+pkg/database/db.go         → MYSQL_URL / POSTGRES_URL ベースの接続
 internal/repository/       → PostgreSQL 実装ファイル追加（既存は維持）
 ```
 
@@ -30,39 +32,26 @@ Handler 層・Service 層は変更なし（インターフェースで抽象化�
 
 ```go
 type Config struct {
-    Host     string
-    Port     string
-    User     string
-    Password string
-    DBName   string
-    DBType   string  // "mysql" or "postgres"（追加）
-    DSN      string  // 直接接続文字列（追加、PostgreSQL 用）
+    MysqlURL    string // MYSQL_URL 環境変数
+    PostgresURL string // POSTGRES_URL 環境変数
+    DBType      string // 自動判定結果: "mysql" or "postgres"
 }
 
-func ConnectByType(config *Config) (*sql.DB, error)  // 追加
-func ConnectPostgres(config *Config) (*sql.DB, error) // 追加
-func Connect(config *Config) (*sql.DB, error)          // 既存（MySQL）
+func LoadConfigFromEnv() *Config  // URL 有無で DBType を自動判定
+func Connect(config *Config) (*sql.DB, error) // DBType に基づき接続
 ```
 
-### 2. PostgreSQL DSN 形式
-
-```
-postgresql://user:password@host:port/dbname?sslmode=require
-```
-
-`DB_DSN` が設定されている場合はそれを優先使用（Supabase の接続文字列をそのまま貼れる）。
-
-### 3. リポジトリ切り替え (main.go)
+### 2. リポジトリ切り替え (main.go)
 
 ```go
-dbType := utils.GetEnv("DB_TYPE", "mysql")
-db, err := database.ConnectByType(dbConfig)
+dbConfig := database.LoadConfigFromEnv()
+db, err := database.Connect(dbConfig)
 
 var cryptoRepo repository.CryptoRepository
 var orderRepo repository.OrderRepository
 var tradeHistoryRepo repository.TradeHistoryRepository
 
-if dbType == "postgres" {
+if dbConfig.DBType == "postgres" {
     cryptoRepo = repository.NewPostgresCryptoRepository(db)
     orderRepo = repository.NewPostgresOrderRepository(db)
     tradeHistoryRepo = repository.NewPostgresTradeHistoryRepository(db)
