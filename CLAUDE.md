@@ -60,7 +60,7 @@ make run        # ルートのMakefile（scripts/start-services.sh経由）
 
 ### バックエンド: レイヤードアーキテクチャ
 ```
-handler → service → repository（MySQL/RDS）
+handler → service → repository（MySQL/RDS or PostgreSQL/Supabase）
                   → client（bitFlyer API）
 ```
 - **Exchange Client**: Strategy Patternで`CryptoExchangeClient`インターフェースを定義。現在はbitFlyerのみ実装。新取引所追加時はインターフェースを実装する。

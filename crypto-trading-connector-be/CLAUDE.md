@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## バックエンド概要
 
-Go + Echo v4 によるREST APIサーバー。bitFlyer Lightning APIから暗号通貨価格を取得し、MySQL(RDS)から履歴データを取得してフロントエンドに提供する。
+Go + Echo v4 によるREST APIサーバー。bitFlyer Lightning APIから暗号通貨価格を取得し、MySQL(RDS)またはPostgreSQL(Supabase)から履歴データを取得してフロントエンドに提供する。`DB_TYPE`環境変数でDB種別を切り替え可能。
 
 ## よく使うコマンド
 
@@ -28,7 +28,8 @@ make buy-order    # BTC/ETHの買い注文（現在価格の97%で実発注）
 cmd/server/main.go     → エントリーポイント、DI
 internal/handler/      → HTTPハンドラー（Echo）
 internal/service/      → ビジネスロジック
-internal/repository/   → MySQL(RDS)データアクセス
+internal/repository/   → データアクセス（MySQL/PostgreSQL両対応）
+                         MySQL版: *_repository.go / PostgreSQL版: *_repository_postgres.go
 internal/client/       → 外部APIクライアント
 internal/model/        → ドメインモデル
 internal/generated/    → OpenAPI生成コード（手動編集禁止）
@@ -55,3 +56,7 @@ pkg/database/          → DB接続
 ## 環境変数（.envファイル）
 
 DB接続(`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`)、`SERVER_PORT`、`CORS_ALLOWED_ORIGINS`、`BITFLYER_API_URL`、bitFlyer認証キー
+
+### PostgreSQL対応の環境変数
+- `DB_TYPE` — `mysql`（デフォルト）または `postgres` を指定
+- `DB_DSN` — PostgreSQL接続文字列（例: `postgres://user:pass@host:5432/dbname?sslmode=require`）。`DB_TYPE=postgres`時に使用
