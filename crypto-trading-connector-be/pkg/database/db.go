@@ -3,70 +3,94 @@ package database
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/crypto-trading-connector/backend/utils"
 	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 )
 
 // Config holds database configuration
 type Config struct {
-	Host     string
-	Port     string
-	User     string
-	Password string
-	DBName   string
+	MysqlURL    string // MySQL接続URL (例: user:pass@tcp(host:port)/dbname?parseTime=true&loc=Local)
+	PostgresURL string // PostgreSQL接続URL (例: postgresql://user:pass@host:port/dbname?sslmode=require)
+	DBType      string // 自動判定結果: "mysql" or "postgres"
 }
 
-// LoadConfigFromEnv loads database configuration from environment variables
+// LoadConfigFromEnv loads database configuration from environment variables.
+// POSTGRES_URL が設定されていればPostgreSQLを優先、MYSQL_URLのみならMySQL。
+// 両方空の場合はpanicする。
 func LoadConfigFromEnv() *Config {
-	config := &Config{
-		Host:     utils.GetEnv("DB_HOST", "localhost"),
-		Port:     utils.GetEnv("DB_PORT", "3306"),
-		User:     utils.GetEnv("DB_USER", "root"),
-		Password: utils.GetEnv("DB_PASSWORD", ""),
-		DBName:   utils.GetEnv("DB_NAME", "crypto_trading_db"),
+	mysqlURL := utils.GetEnv("MYSQL_URL", "")
+	postgresURL := utils.GetEnv("POSTGRES_URL", "")
+
+	if mysqlURL == "" && postgresURL == "" {
+		log.Fatal("FATAL: Neither MYSQL_URL nor POSTGRES_URL is set. At least one database URL must be configured.")
 	}
 
-	// Debug: Print loaded configuration
-	fmt.Printf("DEBUG: Loaded DB config - Host: %s, Port: %s, User: %s, DBName: %s\n",
-		config.Host, config.Port, config.User, config.DBName)
+	// PostgreSQL優先
+	dbType := "mysql"
+	if postgresURL != "" {
+		dbType = "postgres"
+	}
 
-	return config
+	log.Printf("DEBUG: DB config - DBType: %s, MYSQL_URL set: %v, POSTGRES_URL set: %v",
+		dbType, mysqlURL != "", postgresURL != "")
+
+	return &Config{
+		MysqlURL:    mysqlURL,
+		PostgresURL: postgresURL,
+		DBType:      dbType,
+	}
 }
 
-// Connect establishes a connection to the MySQL database
+// Connect establishes a database connection based on which URL is configured.
+// PostgreSQL URL が設定されていればPostgreSQLを優先する。
 func Connect(config *Config) (*sql.DB, error) {
-	host := config.Host
+	switch config.DBType {
+	case "postgres":
+		return connectPostgres(config.PostgresURL)
+	default:
+		return connectMySQL(config.MysqlURL)
+	}
+}
 
-	// dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=Local&timeout=10s&readTimeout=10s&writeTimeout=10s",
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true&loc=Local",
-		config.User,
-		config.Password,
-		host,
-		config.Port,
-		config.DBName,
-	)
-
-	fmt.Printf("DEBUG: Using DSN: %s\n", dsn)
-
-	fmt.Printf("DEBUG: About to call sql.Open with DSN for host: %s\n", config.Host)
+// connectMySQL establishes a connection to a MySQL database
+func connectMySQL(dsn string) (*sql.DB, error) {
+	log.Printf("DEBUG: Connecting to MySQL")
 
 	db, err := sql.Open("mysql", dsn)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open database: %w", err)
+		return nil, fmt.Errorf("failed to open MySQL database: %w", err)
 	}
 
-	fmt.Printf("DEBUG: sql.Open succeeded, about to ping database\n")
-
-	// Set connection pool settings
 	db.SetMaxOpenConns(25)
 	db.SetMaxIdleConns(5)
 	db.SetConnMaxLifetime(5 * time.Minute)
 
-	// Test the connection
 	if err := db.Ping(); err != nil {
-		return nil, fmt.Errorf("failed to ping database: %w", err)
+		return nil, fmt.Errorf("failed to ping MySQL database: %w", err)
+	}
+
+	return db, nil
+}
+
+// connectPostgres establishes a connection to a PostgreSQL database
+func connectPostgres(dsn string) (*sql.DB, error) {
+	log.Printf("DEBUG: Connecting to PostgreSQL")
+
+	db, err := sql.Open("postgres", dsn)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open PostgreSQL database: %w", err)
+	}
+
+	db.SetMaxOpenConns(25)
+	db.SetMaxIdleConns(5)
+	db.SetConnMaxLifetime(5 * time.Minute)
+
+	if err := db.Ping(); err != nil {
+		return nil, fmt.Errorf("failed to ping PostgreSQL database: %w", err)
 	}
 
 	return db, nil

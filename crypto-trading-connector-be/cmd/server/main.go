@@ -21,12 +21,6 @@ func main() {
 		log.Println("Warning: .env file not found, using environment variables")
 	}
 
-	// Debug: Print all environment variables starting with DB_
-	log.Println("DEBUG: Environment variables:")
-	for _, env := range []string{"DB_HOST", "DB_PORT", "DB_USER", "DB_NAME", "SERVER_PORT"} {
-		log.Printf("  %s = %s", env, utils.GetEnv(env, "NOT_SET"))
-	}
-
 	// Load database configuration
 	dbConfig := database.LoadConfigFromEnv()
 
@@ -37,7 +31,7 @@ func main() {
 	}
 	defer db.Close()
 
-	log.Println("Successfully connected to database")
+	log.Printf("Successfully connected to database (%s)", dbConfig.DBType)
 
 	// Initialize exchange client (bitFlyer)
 	bitflyerAPIURL := utils.GetEnv("BITFLYER_API_URL", "https://api.bitflyer.com")
@@ -53,10 +47,20 @@ func main() {
 		log.Println("Exchange client (bitFlyer) initialized without authentication (public API only)")
 	}
 
-	// Initialize repositories
-	cryptoRepo := repository.NewMySQLCryptoRepository(db)
-	orderRepo := repository.NewOrderRepository(db)
-	tradeHistoryRepo := repository.NewMySQLTradeHistoryRepository(db)
+	// Initialize repositories based on DB type
+	var cryptoRepo repository.CryptoRepository
+	var orderRepo repository.OrderRepository
+	var tradeHistoryRepo repository.TradeHistoryRepository
+
+	if dbConfig.DBType == "postgres" {
+		cryptoRepo = repository.NewPostgresCryptoRepository(db)
+		orderRepo = repository.NewPostgresOrderRepository(db)
+		tradeHistoryRepo = repository.NewPostgresTradeHistoryRepository(db)
+	} else {
+		cryptoRepo = repository.NewMySQLCryptoRepository(db)
+		orderRepo = repository.NewOrderRepository(db)
+		tradeHistoryRepo = repository.NewMySQLTradeHistoryRepository(db)
+	}
 
 	// Initialize services
 	cryptoService := service.NewCryptoService(cryptoRepo, exchangeClient)
