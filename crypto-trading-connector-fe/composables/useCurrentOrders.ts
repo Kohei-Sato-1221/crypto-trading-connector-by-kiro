@@ -75,8 +75,8 @@ export const useCurrentOrders = (selectedPair?: Ref<'BTC/JPY' | 'ETH/JPY'>) => {
       // Make API call
       const response = await get<CurrentOrdersResponse>('/orders/current', params)
 
-      // Transform API response to match our interface
-      const transformedBuyOrders: CurrentOrder[] = response.buyOrders.map(order => ({
+      // Transform API response to match our interface (handle null/undefined response)
+      const transformedBuyOrders: CurrentOrder[] = (response?.buyOrders ?? []).map(order => ({
         id: order.id,
         type: order.type,
         pair: order.pair,
@@ -85,7 +85,7 @@ export const useCurrentOrders = (selectedPair?: Ref<'BTC/JPY' | 'ETH/JPY'>) => {
         createdAt: order.createdAt
       }))
 
-      const transformedSellOrders: CurrentOrder[] = response.sellOrders.map(order => ({
+      const transformedSellOrders: CurrentOrder[] = (response?.sellOrders ?? []).map(order => ({
         id: order.id,
         type: order.type,
         pair: order.pair,
