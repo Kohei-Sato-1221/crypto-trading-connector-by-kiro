@@ -11,6 +11,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/labstack/echo/v4 v4.13.4
 	github.com/leanovate/gopter v0.2.11
+	github.com/lib/pq v1.12.3
 	github.com/oapi-codegen/runtime v1.1.2
 	github.com/stretchr/testify v1.10.0
 )
