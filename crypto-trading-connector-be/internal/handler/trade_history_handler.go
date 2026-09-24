@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"log"
 	"net/http"
 	"strconv"
 
@@ -151,6 +152,7 @@ func (h *TradeHistoryHandler) handleTradeHistoryError(c echo.Context, err error)
 	}
 
 	// Database or other internal errors
+	log.Printf("[ERROR] trade history internal error: %v", err)
 	return handleError(c, http.StatusInternalServerError, generated.INTERNALSERVERERROR, "Internal server error")
 }
 

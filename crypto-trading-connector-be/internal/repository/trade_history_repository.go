@@ -131,12 +131,12 @@ func (r *MySQLTradeHistoryRepository) GetTradeTransactions(assetFilter, timeFilt
 	for rows.Next() {
 		var (
 			id          string
-			sellOrderID string
-			buyOrderID  string
-			productCode string
-			sellPrice   float64
-			buyPrice    float64
-			size        float64
+			sellOrderID sql.NullString
+			buyOrderID  sql.NullString
+			productCode sql.NullString
+			sellPrice   sql.NullFloat64
+			buyPrice    sql.NullFloat64
+			size        sql.NullFloat64
 			timestamp   time.Time
 			profit      float64
 		)
@@ -145,7 +145,7 @@ func (r *MySQLTradeHistoryRepository) GetTradeTransactions(assetFilter, timeFilt
 			return nil, fmt.Errorf("failed to scan transaction row: %w", err)
 		}
 
-		cryptocurrency := getCryptocurrencyFromProductCode(productCode)
+		cryptocurrency := getCryptocurrencyFromProductCode(productCode.String)
 
 		transaction := generated.Transaction{
 			Id:             id,
@@ -153,11 +153,11 @@ func (r *MySQLTradeHistoryRepository) GetTradeTransactions(assetFilter, timeFilt
 			Timestamp:      timestamp,
 			Profit:         roundToOneDecimal(profit),
 			OrderType:      generated.Sell,
-			OrderId:        sellOrderID,
-			BuyPrice:       buyPrice,
-			SellPrice:      sellPrice,
-			Amount:         size,
-			BuyOrderId:     buyOrderID,
+			OrderId:        sellOrderID.String,
+			BuyPrice:       buyPrice.Float64,
+			SellPrice:      sellPrice.Float64,
+			Amount:         size.Float64,
+			BuyOrderId:     buyOrderID.String,
 		}
 
 		transactions = append(transactions, transaction)

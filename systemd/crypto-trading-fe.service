@@ -11,7 +11,6 @@ User=pi
 Group=pi
 # WorkingDirectory=/home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-fe
 Environment=PATH=/opt/nodejs/bin:/usr/local/bin:/usr/bin:/bin
-EnvironmentFile=/home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-fe/.env
 Environment=NODE_ENV=production
 ExecStart=/bin/bash -c 'cd /home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-fe && npm run preview'
 ExecStop=/bin/kill -TERM $MAINPID
