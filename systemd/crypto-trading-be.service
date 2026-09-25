@@ -9,6 +9,7 @@ Type=simple
 User=pi
 Group=pi
 WorkingDirectory=/home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-be
+Environment=PATH=/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 EnvironmentFile=/home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-be/.env
 ExecStart=/home/pi/workspace/crypto-trading-connector-by-kiro/crypto-trading-connector-be/start-server.sh
 ExecStop=/bin/kill -TERM $MAINPID
