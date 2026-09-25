@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/crypto-trading-connector/backend/utils"
@@ -76,9 +77,39 @@ func connectMySQL(dsn string) (*sql.DB, error) {
 	return db, nil
 }
 
+// ensureBinaryParameters adds binary_parameters=yes to a PostgreSQL URL when absent.
+//
+// Supabase等のtransaction pooler(PgBouncer/Supavisor)経由の場合、lib/pq が
+// Parse と Bind/Execute を別々のラウンドトリップで送ると、その間にpooler側で
+// バックエンド接続が切り替わり "unnamed prepared statement does not exist" になる。
+// パラメータ付きクエリ（LIMIT $1 OFFSET $2 等）だけが確率的に失敗するのはこのため。
+// binary_parameters=yes にすると lib/pq が1往復にまとめて送るため回避できる。
+//
+// URLをパースせず文字列操作で付与している。パスワードに含まれる特殊文字が
+// 再エンコードで変化し、接続できなくなるのを避けるため。
+func ensureBinaryParameters(dsn string) string {
+	// URL形式以外(key=value形式のDSN)は対象外
+	if !strings.HasPrefix(dsn, "postgres://") && !strings.HasPrefix(dsn, "postgresql://") {
+		return dsn
+	}
+
+	// 明示的に指定済みなら尊重する
+	if strings.Contains(dsn, "binary_parameters=") {
+		return dsn
+	}
+
+	if strings.Contains(dsn, "?") {
+		return dsn + "&binary_parameters=yes"
+	}
+
+	return dsn + "?binary_parameters=yes"
+}
+
 // connectPostgres establishes a connection to a PostgreSQL database
 func connectPostgres(dsn string) (*sql.DB, error) {
 	log.Printf("DEBUG: Connecting to PostgreSQL")
+
+	dsn = ensureBinaryParameters(dsn)
 
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
